@@ -1,79 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme/app_theme.dart';
-import 'modules/bracket_view/bracket_view.dart';
 
-void main() {
-  runApp(const SynapseApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://ohkfdmpcbvwiqlnonihh.supabase.co',
+    anonKey: 'PASTE_YOUR_ANON_KEY_HERE',
+  );
+
+  runApp(const MyApp());
 }
 
-class SynapseApp extends StatelessWidget {
-  const SynapseApp({super.key});
-
-  static final List<BracketRound> demoRounds = [
-    BracketRound(
-      label: 'Round 1',
-      matches: [
-        {
-          'match_participants': [
-            {
-              'display_name': 'Team Atlas',
-              'score': 12,
-              'slot': 1,
-              'outcome': 'win',
-            },
-            {
-              'display_name': 'Team Nova',
-              'score': 8,
-              'slot': 2,
-            },
-          ],
-        },
-        {
-          'match_participants': [
-            {
-              'display_name': 'Team Pulse',
-              'score': 14,
-              'slot': 1,
-              'outcome': 'win',
-            },
-            {
-              'display_name': 'Team Orion',
-              'score': 10,
-              'slot': 2,
-            },
-          ],
-        },
-      ],
-    ),
-    BracketRound(
-      label: 'Round 2',
-      matches: [
-        {
-          'match_participants': [
-            {
-              'display_name': 'Team Atlas',
-              'score': 0,
-              'slot': 1,
-            },
-            {
-              'display_name': 'Team Pulse',
-              'score': 0,
-              'slot': 2,
-            },
-          ],
-        },
-      ],
-    ),
-  ];
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: AppTheme.light(),
-      home: BracketView(
-        rounds: demoRounds,
-        title: 'Tournament Bracket',
+      home: const ConnectionTestPage(),
+    );
+  }
+}
+
+class ConnectionTestPage extends StatefulWidget {
+  const ConnectionTestPage({super.key});
+
+  @override
+  State<ConnectionTestPage> createState() => _ConnectionTestPageState();
+}
+
+class _ConnectionTestPageState extends State<ConnectionTestPage> {
+  bool _loading = false;
+  String? _status;
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _loading = true;
+      _status = null;
+    });
+
+    try {
+      await Supabase.instance.client.from('tournaments').insert({
+        'name': 'Torneio Teste Vercel',
+        'format': 'single_elimination',
+        'game_name': 'Demo Game',
+      });
+
+      setState(() => _status = 'Conexao sucesso!');
+    } catch (error) {
+      setState(() => _status = 'Erro: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Teste de Conexao')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: _loading ? null : _testConnection,
+              child: _loading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Inserir torneio teste'),
+            ),
+            if (_status != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _status!,
+                style: const TextStyle(color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
