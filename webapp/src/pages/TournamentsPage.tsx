@@ -271,6 +271,7 @@ export const TournamentsPage = () => {
     setShowFormatModal(true);
     setModalStep('format');
     setModalNotice(null);
+    setSelectedFormatId((prev) => prev ?? formatOptions[0]?.id ?? null);
   };
 
   const closeModal = () => {
