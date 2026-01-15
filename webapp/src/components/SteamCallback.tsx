@@ -6,6 +6,8 @@ type CallbackState = 'idle' | 'loading' | 'error';
 
 type SteamResponse = {
   steamId?: string;
+  nickname?: string | null;
+  avatarUrl?: string | null;
   error?: string;
 };
 
@@ -55,16 +57,19 @@ export const SteamCallback = () => {
         return;
       }
 
-      const nickname = `Steam ${data.steamId.slice(-4)}`;
+      const nickname =
+        data.nickname?.trim() || `Steam ${data.steamId.slice(-4)}`;
+      const avatarUrl = data.avatarUrl?.trim() || null;
+      const playerPayload: Record<string, string> = {
+        steam_id: data.steamId,
+        nickname,
+      };
+      if (avatarUrl) {
+        playerPayload.avatar_url = avatarUrl;
+      }
       const { data: player, error: playerError } = await supabase
         .from('players')
-        .upsert(
-          {
-            steam_id: data.steamId,
-            nickname,
-          },
-          { onConflict: 'steam_id' },
-        )
+        .upsert(playerPayload, { onConflict: 'steam_id' })
         .select('id, nickname')
         .single();
 

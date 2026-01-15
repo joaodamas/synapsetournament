@@ -5,6 +5,40 @@ const corsHeaders = {
 };
 
 const steamOpenIdUrl = 'https://steamcommunity.com/openid/login';
+const steamProfileApi =
+  'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/';
+
+const fetchSteamProfile = async (steamId: string) => {
+  const apiKey = Deno.env.get('STEAM_API_KEY');
+  if (!apiKey) {
+    return null;
+  }
+
+  const url = new URL(steamProfileApi);
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('steamids', steamId);
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = await response.json();
+  const player = payload?.response?.players?.[0];
+  if (!player) {
+    return null;
+  }
+
+  return {
+    nickname: typeof player.personaname === 'string' ? player.personaname : null,
+    avatarUrl:
+      typeof player.avatarfull === 'string'
+        ? player.avatarfull
+        : typeof player.avatar === 'string'
+          ? player.avatar
+          : null,
+  };
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -95,8 +129,14 @@ Deno.serve(async (req) => {
     );
   }
 
+  const profile = await fetchSteamProfile(match[1]);
+
   return new Response(
-    JSON.stringify({ steamId: match[1] }),
+    JSON.stringify({
+      steamId: match[1],
+      nickname: profile?.nickname ?? null,
+      avatarUrl: profile?.avatarUrl ?? null,
+    }),
     {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     },
