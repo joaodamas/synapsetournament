@@ -2,10 +2,6 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, Target, TrendingUp } from 'lucide-react';
 
-import {
-  FaceitLogo,
-  GamersClubLogo,
-} from '../components/Branding/ProviderLogos';
 import { MatchHistory } from '../components/MatchHistory';
 import {
   getFaceitLevelBadgeClass,
@@ -257,11 +253,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
             </h2>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <span className={getGcLevelBadgeClass(user.gc_level)}>
-                <GamersClubLogo className="h-4 w-4 text-blue-600" />
                 GC LVL {user.gc_level}
               </span>
               <span className={getFaceitLevelBadgeClass(user.faceit_level)}>
-                <FaceitLogo className="h-4 w-4 text-orange-500" />
                 FACEIT LVL {user.faceit_level}
               </span>
             </div>
@@ -332,7 +326,6 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                <GamersClubLogo className="h-4 w-4 text-blue-600" />
                 GamersClub
               </div>
               <input
@@ -345,7 +338,6 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                 <span className="text-xs text-slate-500">
                   Nivel atual:{' '}
                   <span className={getGcLevelBadgeClass(user.gc_level, 'sm')}>
-                    <GamersClubLogo className="h-3 w-3 text-blue-600" />
                     GC {user.gc_level}
                   </span>
                 </span>
@@ -362,7 +354,6 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
 
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                <FaceitLogo className="h-4 w-4 text-orange-500" />
                 Faceit
               </div>
               <input
@@ -380,7 +371,6 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                       'sm',
                     )}
                   >
-                    <FaceitLogo className="h-3 w-3 text-orange-500" />
                     FACEIT {user.faceit_level}
                   </span>
                 </span>
