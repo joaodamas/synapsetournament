@@ -111,6 +111,14 @@ type TournamentsPageProps = {
   playerId?: string;
 };
 
+type ConfigSection =
+  | 'identidade'
+  | 'datas'
+  | 'regras'
+  | 'premios'
+  | 'comunicacao'
+  | 'privacidade';
+
 const formatOptions = [
   {
     id: 'single_elimination',
@@ -205,6 +213,15 @@ const formatOptions = [
   },
 ];
 
+const configTabs: { id: ConfigSection; label: string }[] = [
+  { id: 'identidade', label: 'Identidade' },
+  { id: 'datas', label: 'Datas' },
+  { id: 'regras', label: 'Regras' },
+  { id: 'premios', label: 'Premiacao' },
+  { id: 'comunicacao', label: 'Comunicacao' },
+  { id: 'privacidade', label: 'Privacidade' },
+];
+
 const rosterTemplate: TeamMember[] = [
   { slot: 'Titular 1', nickname: '', steam: '', faceit: '', country: '', gameRole: '' },
   { slot: 'Titular 2', nickname: '', steam: '', faceit: '', country: '', gameRole: '' },
@@ -290,6 +307,8 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
   const [modalStep, setModalStep] = useState<ModalStep>('format');
   const [modalNotice, setModalNotice] = useState<string | null>(null);
   const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
+  const [configSection, setConfigSection] =
+    useState<ConfigSection>('identidade');
   const [createdTournament, setCreatedTournament] =
     useState<CreatedTournament | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
@@ -358,6 +377,7 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
     setModalStep('format');
     setModalNotice(null);
     setSelectedFormatId(formatOptions[0]?.id ?? null);
+    setConfigSection('identidade');
     setEditingIds(null);
     setCreatedTournament(null);
     setCopyState('idle');
@@ -380,6 +400,7 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
       return;
     }
     setModalStep('config');
+    setConfigSection('identidade');
     setModalNotice(null);
   };
 
@@ -871,6 +892,7 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
     );
     setShowFormatModal(true);
     setModalStep('config');
+    setConfigSection('identidade');
     setModalNotice(null);
   };
 
@@ -1091,13 +1113,13 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
 
       {showFormatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-6">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-start justify-between border-b border-slate-100 px-8 py-6">
+          <div className="max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-[3rem] border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between border-b border-slate-100 px-10 py-7">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
                   Novo torneio
                 </p>
-                <h2 className="mt-3 text-2xl font-black text-slate-900">
+                <h2 className="mt-3 text-3xl font-black text-slate-900">
                   {modalStep === 'format' && 'Escolha o formato do campeonato'}
                   {modalStep === 'config' && 'Configure o torneio'}
                   {modalStep === 'link' && 'Link de inscricao das equipes'}
@@ -1228,526 +1250,578 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
             )}
 
             {modalStep === 'config' && (
-              <div className="grid gap-6 px-8 py-6 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="max-h-[65vh] space-y-6 overflow-y-auto pr-3">
-                  <section className="space-y-4">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                        Identidade e divulgacao
-                      </p>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Nome do torneio *"
-                        value={tournamentForm.name}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            name: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Jogo *"
-                        value={tournamentForm.gameTitle}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            gameTitle: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <FieldTextarea
-                      label="Descricao / regras resumidas *"
-                      value={tournamentForm.description}
-                      onChange={(value) =>
-                        setTournamentForm((prev) => ({
-                          ...prev,
-                          description: value,
-                        }))
-                      }
-                    />
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Nome do responsavel *"
-                        value={tournamentForm.organizerName}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            organizerName: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Contato do responsavel *"
-                        value={tournamentForm.organizerContact}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            organizerContact: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Email do responsavel (opcional)"
-                        value={tournamentForm.organizerEmail}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            organizerEmail: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
-                      <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                        Banner (opcional)
-                      </p>
-                      <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-                        <label className="cursor-pointer rounded-full bg-blue-600 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white">
-                          Upload banner
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(event) =>
-                              handleBannerChange(event.target.files?.[0] || null)
-                            }
-                          />
-                        </label>
-                        {tournamentForm.bannerPreview && (
-                          <img
-                            src={tournamentForm.bannerPreview}
-                            alt="Preview banner"
-                            className="h-16 rounded-xl border border-slate-200 object-cover"
-                          />
-                        )}
+              <div className="grid gap-8 px-10 py-8 lg:grid-cols-[1.35fr_0.65fr]">
+                <div className="max-h-[70vh] overflow-y-auto pr-4">
+                  <div className="mb-6 flex flex-wrap gap-2 rounded-3xl border border-slate-100 bg-slate-50 p-2">
+                    {configTabs.map((tab) => {
+                      const isActive = configSection === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setConfigSection(tab.id)}
+                          className={`rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] transition ${
+                            isActive
+                              ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                              : 'text-slate-500 hover:bg-white'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {configSection === 'identidade' && (
+                    <section className="space-y-4">
+                      <div>
+                        <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                          Identidade e divulgacao
+                        </p>
                       </div>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Discord oficial *"
-                        value={tournamentForm.officialChannel}
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Nome do torneio"
+                          required
+                          value={tournamentForm.name}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              name: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Jogo"
+                          required
+                          value={tournamentForm.gameTitle}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              gameTitle: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <FieldTextarea
+                        label="Descricao / regras resumidas"
+                        required
+                        value={tournamentForm.description}
                         onChange={(value) =>
                           setTournamentForm((prev) => ({
                             ...prev,
-                            officialChannel: value,
+                            description: value,
                           }))
                         }
                       />
-                      <FieldInput
-                        label="Discord secundario (opcional)"
-                        value={tournamentForm.discordLink}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            discordLink: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Link Twitch/YouTube (opcional)"
-                        value={tournamentForm.streamLink}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            streamLink: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Link regulamento PDF (opcional)"
-                        value={tournamentForm.rulesLink}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            rulesLink: value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </section>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Nome do responsavel"
+                          required
+                          value={tournamentForm.organizerName}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              organizerName: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Contato do responsavel"
+                          required
+                          value={tournamentForm.organizerContact}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              organizerContact: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Email do responsavel (opcional)"
+                          value={tournamentForm.organizerEmail}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              organizerEmail: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+                        <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
+                          Banner (opcional)
+                        </p>
+                        <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+                          <label className="cursor-pointer rounded-full bg-blue-600 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white">
+                            Upload banner
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(event) =>
+                                handleBannerChange(
+                                  event.target.files?.[0] || null,
+                                )
+                              }
+                            />
+                          </label>
+                          {tournamentForm.bannerPreview && (
+                            <img
+                              src={tournamentForm.bannerPreview}
+                              alt="Preview banner"
+                              className="h-16 rounded-xl border border-slate-200 object-cover"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Discord oficial"
+                          required
+                          value={tournamentForm.officialChannel}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              officialChannel: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Discord secundario (opcional)"
+                          value={tournamentForm.discordLink}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              discordLink: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Link Twitch/YouTube (opcional)"
+                          value={tournamentForm.streamLink}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              streamLink: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Link regulamento PDF (opcional)"
+                          value={tournamentForm.rulesLink}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              rulesLink: value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </section>
+                  )}
 
-                  <section className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                      Datas e formato
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Fuso horario *"
-                        value={tournamentForm.timezone}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            timezone: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Local (online/LAN) *"
-                        value={tournamentForm.location}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            location: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Inicio (data/hora) *"
-                        type="datetime-local"
-                        value={tournamentForm.startDate}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            startDate: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Fim (data/hora) *"
-                        type="datetime-local"
-                        value={tournamentForm.endDate}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            endDate: value,
-                          }))
-                        }
-                      />
-                      <FieldSelect
-                        label="Serie principal *"
-                        value={tournamentForm.seriesMain}
-                        options={['BO1', 'BO3', 'BO5']}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            seriesMain: value,
-                          }))
-                        }
-                      />
-                      <FieldSelect
-                        label="Serie grupos (opcional)"
-                        value={tournamentForm.seriesGroups}
-                        options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            seriesGroups: value,
-                          }))
-                        }
-                      />
-                      <FieldSelect
-                        label="Serie playoffs (opcional)"
-                        value={tournamentForm.seriesPlayoffs}
-                        options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            seriesPlayoffs: value,
-                          }))
-                        }
-                      />
-                      <FieldSelect
-                        label="Serie final (opcional)"
-                        value={tournamentForm.seriesFinal}
-                        options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            seriesFinal: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Numero maximo de equipes *"
-                        value={tournamentForm.maxTeams}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            maxTeams: value,
-                          }))
-                        }
-                      />
-                      <FieldSelect
-                        label="Criterio de seed (opcional)"
-                        value={tournamentForm.seedCriteria}
-                        options={[
-                          'random',
-                          'ranking interno',
-                          'por elo',
-                          'por inscricao',
-                        ]}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            seedCriteria: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Janela de check-in (opcional)"
-                        value={tournamentForm.checkInWindow}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            checkInWindow: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                      <input
-                        type="checkbox"
-                        checked={tournamentForm.checkInEnabled}
-                        onChange={(event) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            checkInEnabled: event.target.checked,
-                          }))
-                        }
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                      />
-                      Habilitar check-in antes das partidas (opcional).
-                    </label>
-                  </section>
+                  {configSection === 'datas' && (
+                    <section className="space-y-4">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                        Datas e formato
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Fuso horario"
+                          required
+                          value={tournamentForm.timezone}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              timezone: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Local (online/LAN)"
+                          required
+                          value={tournamentForm.location}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              location: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Inicio (data/hora)"
+                          required
+                          type="datetime-local"
+                          value={tournamentForm.startDate}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              startDate: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Fim (data/hora)"
+                          required
+                          type="datetime-local"
+                          value={tournamentForm.endDate}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              endDate: value,
+                            }))
+                          }
+                        />
+                        <FieldSelect
+                          label="Serie principal"
+                          required
+                          value={tournamentForm.seriesMain}
+                          options={['BO1', 'BO3', 'BO5']}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              seriesMain: value,
+                            }))
+                          }
+                        />
+                        <FieldSelect
+                          label="Serie grupos (opcional)"
+                          value={tournamentForm.seriesGroups}
+                          options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              seriesGroups: value,
+                            }))
+                          }
+                        />
+                        <FieldSelect
+                          label="Serie playoffs (opcional)"
+                          value={tournamentForm.seriesPlayoffs}
+                          options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              seriesPlayoffs: value,
+                            }))
+                          }
+                        />
+                        <FieldSelect
+                          label="Serie final (opcional)"
+                          value={tournamentForm.seriesFinal}
+                          options={['Nao aplica', 'BO1', 'BO3', 'BO5']}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              seriesFinal: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Numero maximo de equipes"
+                          required
+                          value={tournamentForm.maxTeams}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              maxTeams: value,
+                            }))
+                          }
+                        />
+                        <FieldSelect
+                          label="Criterio de seed (opcional)"
+                          value={tournamentForm.seedCriteria}
+                          options={[
+                            'random',
+                            'ranking interno',
+                            'por elo',
+                            'por inscricao',
+                          ]}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              seedCriteria: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Janela de check-in (opcional)"
+                          value={tournamentForm.checkInWindow}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              checkInWindow: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
+                        <input
+                          type="checkbox"
+                          checked={tournamentForm.checkInEnabled}
+                          onChange={(event) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              checkInEnabled: event.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                        />
+                        Habilitar check-in antes das partidas (opcional).
+                      </label>
+                    </section>
+                  )}
 
-                  <section className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                      Regras de partida
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Servidor/regiao *"
-                        value={tournamentForm.serverRegion}
+                  {configSection === 'regras' && (
+                    <section className="space-y-4">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                        Regras de partida
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Servidor/regiao"
+                          required
+                          value={tournamentForm.serverRegion}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              serverRegion: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Metodo de veto de mapas"
+                          required
+                          value={tournamentForm.mapVetoMethod}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              mapVetoMethod: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <FieldTextarea
+                        label="Map pool (lista de mapas)"
+                        required
+                        value={tournamentForm.mapPool}
                         onChange={(value) =>
                           setTournamentForm((prev) => ({
                             ...prev,
-                            serverRegion: value,
+                            mapPool: value,
                           }))
                         }
                       />
-                      <FieldInput
-                        label="Metodo de veto de mapas *"
-                        value={tournamentForm.mapVetoMethod}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            mapVetoMethod: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <FieldTextarea
-                      label="Map pool (lista de mapas) *"
-                      value={tournamentForm.mapPool}
-                      onChange={(value) =>
-                        setTournamentForm((prev) => ({
-                          ...prev,
-                          mapPool: value,
-                        }))
-                      }
-                    />
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Politica de atraso *"
-                        value={tournamentForm.delayPolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            delayPolicy: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="WO / No-show *"
-                        value={tournamentForm.woPolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            woPolicy: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Protestos e evidencias *"
-                        value={tournamentForm.protestPolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            protestPolicy: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Pausas (opcional)"
-                        value={tournamentForm.pausePolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            pausePolicy: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Substituicoes (opcional)"
-                        value={tournamentForm.substitutionsPolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            substitutionsPolicy: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Anti-cheat / requisitos (opcional)"
-                        value={tournamentForm.antiCheat}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            antiCheat: value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </section>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Politica de atraso"
+                          required
+                          value={tournamentForm.delayPolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              delayPolicy: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="WO / No-show"
+                          required
+                          value={tournamentForm.woPolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              woPolicy: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Protestos e evidencias"
+                          required
+                          value={tournamentForm.protestPolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              protestPolicy: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Pausas (opcional)"
+                          value={tournamentForm.pausePolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              pausePolicy: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Substituicoes (opcional)"
+                          value={tournamentForm.substitutionsPolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              substitutionsPolicy: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Anti-cheat / requisitos (opcional)"
+                          value={tournamentForm.antiCheat}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              antiCheat: value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </section>
+                  )}
 
-                  <section className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                      Premiacao e custos
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Premiacao (opcional)"
-                        value={tournamentForm.prizePool}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            prizePool: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Taxa de inscricao (opcional)"
-                        value={tournamentForm.entryFee}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            entryFee: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Politica de reembolso (opcional)"
-                        value={tournamentForm.refundPolicy}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            refundPolicy: value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </section>
+                  {configSection === 'premios' && (
+                    <section className="space-y-4">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                        Premiacao e custos
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Premiacao (opcional)"
+                          value={tournamentForm.prizePool}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              prizePool: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Taxa de inscricao (opcional)"
+                          value={tournamentForm.entryFee}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              entryFee: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Politica de reembolso (opcional)"
+                          value={tournamentForm.refundPolicy}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              refundPolicy: value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </section>
+                  )}
 
-                  <section className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                      Comunicacao e suporte
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldInput
-                        label="Equipe de admins (opcional)"
-                        value={tournamentForm.adminContacts}
+                  {configSection === 'comunicacao' && (
+                    <section className="space-y-4">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                        Comunicacao e suporte
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldInput
+                          label="Equipe de admins (opcional)"
+                          value={tournamentForm.adminContacts}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              adminContacts: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Idiomas (opcional)"
+                          value={tournamentForm.languages}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              languages: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <FieldTextarea
+                        label="Observacoes adicionais (opcional)"
+                        value={tournamentForm.notes}
                         onChange={(value) =>
                           setTournamentForm((prev) => ({
                             ...prev,
-                            adminContacts: value,
+                            notes: value,
                           }))
                         }
                       />
-                      <FieldInput
-                        label="Idiomas (opcional)"
-                        value={tournamentForm.languages}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            languages: value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </section>
+                    </section>
+                  )}
 
-                  <section className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                      Privacidade e controle
-                    </p>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FieldSelect
-                        label="Torneio publico ou privado *"
-                        value={tournamentForm.visibility}
-                        options={['publico', 'privado']}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            visibility: value,
-                          }))
-                        }
-                      />
-                      <FieldInput
-                        label="Codigo de convite (se privado)"
-                        value={tournamentForm.inviteCode}
-                        onChange={(value) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            inviteCode: value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                      <input
-                        type="checkbox"
-                        checked={tournamentForm.approvalRequired}
-                        onChange={(event) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            approvalRequired: event.target.checked,
-                          }))
-                        }
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                      />
-                      Aprovar manualmente as inscricoes (opcional).
-                    </label>
-                    <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                      <input
-                        type="checkbox"
-                        checked={tournamentForm.termsAccepted}
-                        onChange={(event) =>
-                          setTournamentForm((prev) => ({
-                            ...prev,
-                            termsAccepted: event.target.checked,
-                          }))
-                        }
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                      />
-                      Aceito as regras, conduta e requisitos do torneio. *
-                    </label>
-                  </section>
-
-                  <FieldTextarea
-                    label="Observacoes adicionais (opcional)"
-                    value={tournamentForm.notes}
-                    onChange={(value) =>
-                      setTournamentForm((prev) => ({
-                        ...prev,
-                        notes: value,
-                      }))
-                    }
-                  />
+                  {configSection === 'privacidade' && (
+                    <section className="space-y-4">
+                      <p className="text-sm font-black uppercase tracking-[0.3em] text-slate-600">
+                        Privacidade e controle
+                      </p>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FieldSelect
+                          label="Torneio publico ou privado"
+                          required
+                          value={tournamentForm.visibility}
+                          options={['publico', 'privado']}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              visibility: value,
+                            }))
+                          }
+                        />
+                        <FieldInput
+                          label="Codigo de convite (se privado)"
+                          value={tournamentForm.inviteCode}
+                          onChange={(value) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              inviteCode: value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
+                        <input
+                          type="checkbox"
+                          checked={tournamentForm.approvalRequired}
+                          onChange={(event) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              approvalRequired: event.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                        />
+                        Aprovar manualmente as inscricoes (opcional).
+                      </label>
+                      <label className="flex items-center gap-3 text-xs font-semibold text-slate-500">
+                        <input
+                          type="checkbox"
+                          checked={tournamentForm.termsAccepted}
+                          onChange={(event) =>
+                            setTournamentForm((prev) => ({
+                              ...prev,
+                              termsAccepted: event.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                        />
+                        Aceito as regras, conduta e requisitos do torneio.
+                        <span className="ml-1 text-rose-500">*</span>
+                      </label>
+                    </section>
+                  )}
                 </div>
-
                 <div className="flex flex-col gap-4">
                   <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
                     <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
@@ -1870,24 +1944,39 @@ export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
   );
 };
 
+const FieldLabel = ({
+  label,
+  required = false,
+}: {
+  label: string;
+  required?: boolean;
+}) => (
+  <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-600">
+    {label}
+    {required && <span className="ml-1 text-rose-500">*</span>}
+  </span>
+);
+
 const FieldInput = ({
   label,
   value,
   onChange,
   type = 'text',
+  required = false,
 }: {
   label: string;
   value: string;
   type?: string;
+  required?: boolean;
   onChange: (value: string) => void;
 }) => (
-  <label className="space-y-2 text-xs font-semibold text-slate-500">
-    <span className="uppercase tracking-[0.3em]">{label}</span>
+  <label className="space-y-2 text-sm font-semibold text-slate-600">
+    <FieldLabel label={label} required={required} />
     <input
       type={type}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
+      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
     />
   </label>
 );
@@ -1897,18 +1986,20 @@ const FieldSelect = ({
   value,
   options,
   onChange,
+  required = false,
 }: {
   label: string;
   value: string;
   options: string[];
+  required?: boolean;
   onChange: (value: string) => void;
 }) => (
-  <label className="space-y-2 text-xs font-semibold text-slate-500">
-    <span className="uppercase tracking-[0.3em]">{label}</span>
+  <label className="space-y-2 text-sm font-semibold text-slate-600">
+    <FieldLabel label={label} required={required} />
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
+      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
     >
       {options.map((option) => (
         <option key={option} value={option}>
@@ -1923,18 +2014,20 @@ const FieldTextarea = ({
   label,
   value,
   onChange,
+  required = false,
 }: {
   label: string;
   value: string;
+  required?: boolean;
   onChange: (value: string) => void;
 }) => (
-  <label className="space-y-2 text-xs font-semibold text-slate-500">
-    <span className="uppercase tracking-[0.3em]">{label}</span>
+  <label className="space-y-2 text-sm font-semibold text-slate-600">
+    <FieldLabel label={label} required={required} />
     <textarea
       value={value}
       onChange={(event) => onChange(event.target.value)}
       rows={4}
-      className="w-full resize-none rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
+      className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none"
     />
   </label>
 );
@@ -2193,21 +2286,24 @@ const TeamRegistration = ({
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <FieldInput
-            label="Nome do time *"
+            label="Nome do time"
+            required
             value={teamForm.teamName}
             onChange={(value) =>
               setTeamForm((prev) => ({ ...prev, teamName: value }))
             }
           />
           <FieldInput
-            label="Tag/abreviacao (3-5) *"
+            label="Tag/abreviacao (3-5)"
+            required
             value={teamForm.teamTag}
             onChange={(value) =>
               setTeamForm((prev) => ({ ...prev, teamTag: value }))
             }
           />
           <FieldInput
-            label="Nome do responsavel *"
+            label="Nome do responsavel"
+            required
             value={teamForm.managerName}
             onChange={(value) =>
               setTeamForm((prev) => ({ ...prev, managerName: value }))
@@ -2221,7 +2317,8 @@ const TeamRegistration = ({
             }
           />
           <FieldInput
-            label="Contato do responsavel (Discord) *"
+            label="Contato do responsavel (Discord)"
+            required
             value={teamForm.managerContact}
             onChange={(value) =>
               setTeamForm((prev) => ({ ...prev, managerContact: value }))
@@ -2369,7 +2466,8 @@ const TeamRegistration = ({
             }
             className="h-4 w-4 rounded border-slate-300 text-blue-600"
           />
-          Confirmo que a equipe aceita as regras, anti-cheat e conduta do torneio. *
+          Confirmo que a equipe aceita as regras, anti-cheat e conduta do torneio.
+          <span className="ml-1 text-rose-500">*</span>
         </label>
 
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
