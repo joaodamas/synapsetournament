@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Crown, Medal, Trophy } from 'lucide-react';
 
 import {
+  FaceitLogo,
+  GamersClubLogo,
+} from './Branding/ProviderLogos';
+import {
   getFaceitLevelBadgeClass,
   getGcLevelBadgeClass,
 } from '../lib/levels';
@@ -103,9 +107,11 @@ const PodiumCard = ({
         </p>
         <div className="flex gap-2">
           <span className={getFaceitLevelBadgeClass(player.faceit_level, 'sm')}>
-            FCT {player.faceit_level}
+            <FaceitLogo className="h-3 w-3 text-orange-500" />
+            FACEIT {player.faceit_level}
           </span>
           <span className={getGcLevelBadgeClass(player.gc_level, 'sm')}>
+            <GamersClubLogo className="h-3 w-3 text-blue-600" />
             GC {player.gc_level}
           </span>
         </div>
@@ -257,7 +263,8 @@ export const GlobalLeaderboard = () => {
                                 'sm',
                               )}
                             >
-                              FCT {player.faceit_level}
+                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              FACEIT {player.faceit_level}
                             </span>
                             <span
                               className={getGcLevelBadgeClass(
@@ -265,6 +272,7 @@ export const GlobalLeaderboard = () => {
                                 'sm',
                               )}
                             >
+                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
                               GC {player.gc_level}
                             </span>
                           </div>

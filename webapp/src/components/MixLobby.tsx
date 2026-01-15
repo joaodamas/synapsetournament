@@ -17,6 +17,10 @@ import { MAP_POOL } from '../lib/maps';
 import { buildSteamLoginUrl } from '../lib/steam';
 import { hasSupabaseConfig, supabase } from '../lib/supabase';
 import type { Player } from '../types';
+import {
+  FaceitLogo,
+  GamersClubLogo,
+} from './Branding/ProviderLogos';
 
 type MixLobbyProps = {
   mixId: string;
@@ -736,6 +740,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
+                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
                               GC {player.gc_level}
                             </span>
                             <span
@@ -744,7 +749,8 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              FCT {player.faceit_level}
+                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              FACEIT {player.faceit_level}
                             </span>
                           </div>
                         </li>
@@ -771,6 +777,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
+                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
                               GC {player.gc_level}
                             </span>
                             <span
@@ -779,7 +786,8 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              FCT {player.faceit_level}
+                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              FACEIT {player.faceit_level}
                             </span>
                           </div>
                         </li>
@@ -977,6 +985,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
+                          <GamersClubLogo className="h-3 w-3 text-blue-600" />
                           GC {player.gc_level}
                         </span>
                         <span
@@ -985,7 +994,8 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          FCT {player.faceit_level}
+                          <FaceitLogo className="h-3 w-3 text-orange-500" />
+                          FACEIT {player.faceit_level}
                         </span>
                       </div>
                     </li>
@@ -1014,6 +1024,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
+                          <GamersClubLogo className="h-3 w-3 text-blue-600" />
                           GC {player.gc_level}
                         </span>
                         <span
@@ -1022,7 +1033,8 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          FCT {player.faceit_level}
+                          <FaceitLogo className="h-3 w-3 text-orange-500" />
+                          FACEIT {player.faceit_level}
                         </span>
                       </div>
                     </li>

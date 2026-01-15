@@ -1,7 +1,7 @@
 type BadgeSize = 'sm' | 'md';
 
 const badgeBase =
-  'inline-flex items-center justify-center rounded-full border font-black uppercase tracking-[0.2em]';
+  'inline-flex items-center justify-center gap-1.5 rounded-full border font-black uppercase leading-none tracking-[0.2em]';
 
 const sizeClasses: Record<BadgeSize, string> = {
   sm: 'px-2 py-0.5 text-[9px]',

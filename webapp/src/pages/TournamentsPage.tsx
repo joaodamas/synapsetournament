@@ -182,7 +182,7 @@ export const TournamentsPage = () => {
             </div>
 
             <div className="grid gap-6 px-8 py-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="space-y-4 overflow-y-auto pr-2">
+              <div className="max-h-[65vh] space-y-4 overflow-y-auto pr-3">
                 {formatOptions.map((format) => (
                   <button
                     key={format.id}
