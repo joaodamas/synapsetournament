@@ -88,6 +88,19 @@ const fetchGcLevel = async (profileUrl: string) => {
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SynapseCS/1.0',
       },
     });
+    if (response.status === 401 || response.status === 403) {
+      return {
+        level: null,
+        warning:
+          'GamersClub bloqueou o acesso ao perfil (privado ou premium).',
+      };
+    }
+    if (response.status === 429) {
+      return {
+        level: null,
+        warning: 'GamersClub limitou o acesso. Tente novamente mais tarde.',
+      };
+    }
     if (!response.ok) {
       return { level: null, warning: 'Nao foi possivel acessar a GamersClub.' };
     }
@@ -96,7 +109,8 @@ const fetchGcLevel = async (profileUrl: string) => {
     if (!level) {
       return {
         level: null,
-        warning: 'Nivel da GamersClub nao encontrado.',
+        warning:
+          'Nivel da GamersClub nao encontrado (perfil premium ou layout diferente).',
       };
     }
     return { level, warning: null };
