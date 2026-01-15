@@ -6,6 +6,7 @@ import { AdvancedMapVeto } from './AdvancedMapVeto';
 import { Logo } from './Branding/Logo';
 import { CreateMix } from './CreateMix';
 import { JoinMixCard } from './JoinMixCard';
+import { QuickGuide } from './QuickGuide';
 import { RealtimeSlots } from './RealtimeSlots';
 import { balanceTeams, calculateAverageLevel } from '../lib/balance';
 import { MAP_POOL } from '../lib/maps';
@@ -144,6 +145,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
             }}
           />
         </div>
+        <QuickGuide />
       </div>
     );
 

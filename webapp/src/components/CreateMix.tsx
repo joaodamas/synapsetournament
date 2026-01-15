@@ -77,7 +77,10 @@ export const CreateMix = ({ playerId, onMixCreated }: CreateMixProps) => {
     if (!createdMixId) {
       return;
     }
-    const link = `${window.location.origin}/?mixId=${createdMixId}`;
+    const domain =
+      (import.meta.env.VITE_SITE_URL as string | undefined) ||
+      window.location.origin;
+    const link = `${domain}/?mixId=${createdMixId}`;
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
@@ -139,7 +142,9 @@ export const CreateMix = ({ playerId, onMixCreated }: CreateMixProps) => {
 
           <div className="mb-8 flex items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-800 p-4">
             <code className="truncate text-sm text-blue-300">
-              {window.location.origin}/?mixId={createdMixId}
+              {(import.meta.env.VITE_SITE_URL as string | undefined) ||
+                window.location.origin}
+              /?mixId={createdMixId}
             </code>
             <button
               type="button"

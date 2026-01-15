@@ -1,0 +1,44 @@
+type StepProps = {
+  number: string;
+  text: string;
+};
+
+const Step = ({ number, text }: StepProps) => (
+  <div className="flex items-start gap-4">
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/20 text-[10px] font-black">
+      {number}
+    </span>
+    <p className="text-xs font-medium leading-relaxed text-blue-50">{text}</p>
+  </div>
+);
+
+export const QuickGuide = () => {
+  return (
+    <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-800 p-8 text-white shadow-2xl">
+      <div className="relative z-10">
+        <h2 className="mb-6 text-2xl font-black italic">
+          COMO FUNCIONA O SYNAPSE:
+        </h2>
+        <div className="space-y-4">
+          <Step
+            number="1"
+            text="Logue com sua Steam e vincule seu nivel da GamersClub no perfil."
+          />
+          <Step
+            number="2"
+            text="Crie um mix ou entre em um link compartilhado por um amigo."
+          />
+          <Step
+            number="3"
+            text="Aguarde os 10 slots encherem. O sorteio sera feito por nivel real."
+          />
+          <Step
+            number="4"
+            text="Realize o veto de mapas e conecte no servidor para jogar."
+          />
+        </div>
+      </div>
+      <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+    </div>
+  );
+};
