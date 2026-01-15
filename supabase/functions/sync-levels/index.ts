@@ -60,6 +60,8 @@ const extractGcLevel = (html: string) => {
   const patterns = [
     /"level"\s*:\s*(\d{1,2})/i,
     /"gc_level"\s*:\s*(\d{1,2})/i,
+    /badge-level-value">\s*(\d{1,2})\s*</i,
+    /new-badge-level-(\d{1,2})/i,
     /N[ií]vel\s*(\d{1,2})/i,
     /Level\s*(\d{1,2})/i,
     /data-level\s*=\s*"?(\d{1,2})"?/i,
