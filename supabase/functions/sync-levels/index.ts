@@ -57,27 +57,42 @@ const fetchFaceitLevel = async (nickname: string) => {
 };
 
 const extractGcLevel = (html: string) => {
-  const patterns = [
-    /"level"\s*:\s*(\d{1,2})/i,
-    /"gc_level"\s*:\s*(\d{1,2})/i,
-    /badge-level-value">\s*(\d{1,2})\s*</i,
-    /new-badge-level-(\d{1,2})/i,
-    /N[ií]vel\s*(\d{1,2})/i,
-    /Level\s*(\d{1,2})/i,
-    /data-level\s*=\s*"?(\d{1,2})"?/i,
-  ];
+  const findLevel = (source: string) => {
+    const patterns = [
+      /"level"\s*:\s*(\d{1,2})/i,
+      /"gc_level"\s*:\s*(\d{1,2})/i,
+      /badge-level-value">\s*(\d{1,2})\s*</i,
+      /new-badge-level-(\d{1,2})/i,
+      /N[ií]vel\s*(\d{1,2})/i,
+      /Level\s*(\d{1,2})/i,
+      /data-level\s*=\s*"?(\d{1,2})"?/i,
+    ];
 
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match?.[1]) {
-      const level = Number(match[1]);
-      if (Number.isFinite(level) && level > 0) {
-        return level;
+    for (const pattern of patterns) {
+      const match = source.match(pattern);
+      if (match?.[1]) {
+        const level = Number(match[1]);
+        if (Number.isFinite(level) && level > 0) {
+          return level;
+        }
       }
+    }
+
+    return null;
+  };
+
+  const containerMatch = html.match(
+    /<div[^>]*class="[^"]*gc-featured-sidebar-media[^"]*no-margin[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+  );
+
+  if (containerMatch?.[1]) {
+    const level = findLevel(containerMatch[1]);
+    if (level) {
+      return level;
     }
   }
 
-  return null;
+  return findLevel(html);
 };
 
 const fetchGcLevel = async (profileUrl: string) => {
