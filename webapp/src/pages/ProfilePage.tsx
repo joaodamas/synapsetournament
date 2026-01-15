@@ -26,6 +26,19 @@ type PlayerStats = {
   winrate: string;
 };
 
+type HistoryTab = 'synapse' | 'faceit' | 'gc';
+
+type FaceitMatch = {
+  id: string;
+  competitionName: string;
+  game: string | null;
+  region: string | null;
+  startedAt: number | null;
+  finishedAt: number | null;
+  winner: string | null;
+  score: Record<string, string> | null;
+};
+
 type ProfilePageProps = {
   playerId: string;
 };
@@ -36,7 +49,22 @@ type SyncLevelsResponse = {
   error?: string;
 };
 
+type FaceitHistoryResponse = {
+  matches?: FaceitMatch[];
+  error?: string;
+};
+
 const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
+
+const formatFaceitDate = (timestamp: number | null) => {
+  if (!timestamp) return '--';
+  const date = new Date(timestamp * 1000);
+  if (Number.isNaN(date.getTime())) return '--';
+  return date.toLocaleDateString('pt-BR');
+};
+
+const buildFaceitMatchUrl = (matchId: string) =>
+  `https://www.faceit.com/pt-br/cs2/room/${matchId}`;
 
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [user, setUser] = useState<PlayerProfile | null>(null);
@@ -45,6 +73,11 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
     adr: '--',
     winrate: '--',
   });
+  const [historyTab, setHistoryTab] = useState<HistoryTab>('synapse');
+  const [faceitMatches, setFaceitMatches] = useState<FaceitMatch[]>([]);
+  const [faceitLoading, setFaceitLoading] = useState(false);
+  const [faceitError, setFaceitError] = useState('');
+  const [faceitLoaded, setFaceitLoaded] = useState(false);
   const [gcProfileUrl, setGcProfileUrl] = useState('');
   const [faceitProfileUrl, setFaceitProfileUrl] = useState('');
   const [savingProfile, setSavingProfile] = useState<
@@ -153,6 +186,57 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
 
     void fetchProfile();
   }, [playerId]);
+
+  useEffect(() => {
+    setFaceitLoaded(false);
+  }, [faceitProfileUrl]);
+
+  useEffect(() => {
+    const fetchFaceitHistory = async () => {
+      if (historyTab !== 'faceit') return;
+      if (faceitLoaded) return;
+      if (!supabase) {
+        setFaceitError('Supabase nao configurado.');
+        setFaceitLoaded(true);
+        return;
+      }
+      if (!faceitProfileUrl) {
+        setFaceitError('Informe o link da Faceit para carregar partidas.');
+        setFaceitMatches([]);
+        setFaceitLoaded(true);
+        return;
+      }
+
+      setFaceitLoading(true);
+      setFaceitError('');
+
+      const { data, error: invokeError } =
+        await supabase.functions.invoke<FaceitHistoryResponse>(
+          'faceit-history',
+          { body: { faceitProfileUrl } },
+        );
+
+      if (invokeError) {
+        setFaceitError(invokeError.message);
+        setFaceitLoading(false);
+        setFaceitLoaded(true);
+        return;
+      }
+
+      if (data?.error) {
+        setFaceitError(data.error);
+        setFaceitLoading(false);
+        setFaceitLoaded(true);
+        return;
+      }
+
+      setFaceitMatches(data?.matches ?? []);
+      setFaceitLoading(false);
+      setFaceitLoaded(true);
+    };
+
+    void fetchFaceitHistory();
+  }, [historyTab, faceitProfileUrl, faceitLoaded]);
 
   const chartBars = useMemo(() => [40, 70, 45, 90, 65, 80, 95], []);
 
@@ -388,10 +472,120 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
         </div>
 
         <div className="space-y-6">
-          <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900">
-            Ultimas partidas
-          </h3>
-          <MatchHistory playerId={playerId} embedded />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900">
+              Ultimas partidas
+            </h3>
+            <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2">
+              {([
+                { id: 'synapse', label: 'SynapseCS' },
+                { id: 'faceit', label: 'Faceit' },
+                { id: 'gc', label: 'GamersClub' },
+              ] as const).map((tab) => {
+                const isActive = historyTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setHistoryTab(tab.id)}
+                    className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] transition ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'text-slate-500 hover:bg-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-[2.5rem] border border-slate-100 bg-white p-6 shadow-sm">
+            {historyTab === 'synapse' && (
+              <MatchHistory playerId={playerId} embedded />
+            )}
+
+            {historyTab === 'faceit' && (
+              <div className="space-y-4">
+                {faceitLoading ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
+                    Carregando partidas da Faceit...
+                  </div>
+                ) : faceitError ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+                    {faceitError}
+                  </div>
+                ) : faceitMatches.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
+                    Nenhuma partida encontrada na Faceit.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {faceitMatches.map((match) => {
+                      const score = match.score
+                        ? `${match.score.faction1 ?? '-'} x ${match.score.faction2 ?? '-'}`
+                        : '--';
+                      return (
+                        <div
+                          key={match.id}
+                          className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4"
+                        >
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                              Faceit
+                            </p>
+                            <p className="font-bold text-slate-800">
+                              {match.competitionName || 'Partida Faceit'}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {formatFaceitDate(match.startedAt)}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-bold uppercase text-slate-400">
+                              Placar
+                            </p>
+                            <p className="text-lg font-black text-slate-800">
+                              {score}
+                            </p>
+                          </div>
+                          <a
+                            href={buildFaceitMatchUrl(match.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-full border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 transition hover:bg-slate-50"
+                          >
+                            Ver
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {historyTab === 'gc' && (
+              <div className="space-y-3 text-sm text-slate-600">
+                <p>
+                  Integracao da GamersClub em breve. Por enquanto, voce pode
+                  importar manualmente via print ou atualizar seus niveis pelo
+                  link.
+                </p>
+                {gcProfileUrl && (
+                  <a
+                    href={gcProfileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 transition hover:bg-slate-50"
+                  >
+                    Abrir perfil GC
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
