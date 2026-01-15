@@ -3,6 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Activity, Target, TrendingUp } from 'lucide-react';
 
 import { MatchHistory } from '../components/MatchHistory';
+import {
+  getFaceitLevelBadgeClass,
+  getGcLevelBadgeClass,
+} from '../lib/levels';
 import { supabase } from '../lib/supabase';
 
 type PlayerProfile = {
@@ -248,10 +252,10 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
               {user.nickname}
             </h2>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-[10px] font-black text-orange-600">
+              <span className={getGcLevelBadgeClass(user.gc_level)}>
                 GC LVL {user.gc_level}
               </span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-slate-600">
+              <span className={getFaceitLevelBadgeClass(user.faceit_level)}>
                 FCT LVL {user.faceit_level}
               </span>
             </div>
@@ -332,7 +336,10 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
               />
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xs text-slate-500">
-                  Nivel atual: <strong>{user.gc_level}</strong>
+                  Nivel atual:{' '}
+                  <span className={getGcLevelBadgeClass(user.gc_level, 'sm')}>
+                    GC {user.gc_level}
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -357,7 +364,15 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
               />
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xs text-slate-500">
-                  Nivel atual: <strong>{user.faceit_level}</strong>
+                  Nivel atual:{' '}
+                  <span
+                    className={getFaceitLevelBadgeClass(
+                      user.faceit_level,
+                      'sm',
+                    )}
+                  >
+                    FCT {user.faceit_level}
+                  </span>
                 </span>
                 <button
                   type="button"

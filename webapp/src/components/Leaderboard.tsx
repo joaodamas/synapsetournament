@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Crown, Medal, Trophy } from 'lucide-react';
 
+import {
+  getFaceitLevelBadgeClass,
+  getGcLevelBadgeClass,
+} from '../lib/levels';
 import { supabase } from '../lib/supabase';
 
 type LeaderboardPlayer = {
@@ -98,10 +102,10 @@ const PodiumCard = ({
           {player.elo_interno} pts
         </p>
         <div className="flex gap-2">
-          <span className="rounded-lg bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          <span className={getFaceitLevelBadgeClass(player.faceit_level, 'sm')}>
             FCT {player.faceit_level}
           </span>
-          <span className="rounded-lg bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          <span className={getGcLevelBadgeClass(player.gc_level, 'sm')}>
             GC {player.gc_level}
           </span>
         </div>
@@ -246,9 +250,24 @@ export const GlobalLeaderboard = () => {
                           </div>
                         </td>
                         <td className="px-8 py-5 text-center">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                            Lvl {player.faceit_level} / {player.gc_level}
-                          </span>
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            <span
+                              className={getFaceitLevelBadgeClass(
+                                player.faceit_level,
+                                'sm',
+                              )}
+                            >
+                              FCT {player.faceit_level}
+                            </span>
+                            <span
+                              className={getGcLevelBadgeClass(
+                                player.gc_level,
+                                'sm',
+                              )}
+                            >
+                              GC {player.gc_level}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-8 py-5 text-right font-black text-slate-900">
                           {player.elo_interno}

@@ -16,7 +16,7 @@ const isUuid = (value: string) =>
 const extractFaceitNickname = (value: string) => {
   const trimmed = value.trim();
   const urlMatch = trimmed.match(
-    /faceit\.com\/(?:[a-z]{2}\/)?players\/([^/?#]+)/i,
+    /faceit\.com\/(?:[a-z-]+\/)?players\/([^/?#]+)/i,
   );
   if (urlMatch?.[1]) {
     return decodeURIComponent(urlMatch[1]);

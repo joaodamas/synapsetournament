@@ -9,6 +9,10 @@ import { JoinMixCard } from './JoinMixCard';
 import { QuickGuide } from './QuickGuide';
 import { RealtimeSlots } from './RealtimeSlots';
 import { balanceTeams, calculateAverageLevel } from '../lib/balance';
+import {
+  getFaceitLevelBadgeClass,
+  getGcLevelBadgeClass,
+} from '../lib/levels';
 import { MAP_POOL } from '../lib/maps';
 import { buildSteamLoginUrl } from '../lib/steam';
 import { hasSupabaseConfig, supabase } from '../lib/supabase';
@@ -725,9 +729,24 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                       {balanced.teamA.map((player) => (
                         <li key={player.id} className="flex justify-between">
                           <span>{player.nickname}</span>
-                          <span className="font-mono text-xs">
-                            {player.gc_level}/{player.faceit_level}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={getGcLevelBadgeClass(
+                                player.gc_level,
+                                'sm',
+                              )}
+                            >
+                              GC {player.gc_level}
+                            </span>
+                            <span
+                              className={getFaceitLevelBadgeClass(
+                                player.faceit_level,
+                                'sm',
+                              )}
+                            >
+                              FCT {player.faceit_level}
+                            </span>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -745,9 +764,24 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                       {balanced.teamB.map((player) => (
                         <li key={player.id} className="flex justify-between">
                           <span>{player.nickname}</span>
-                          <span className="font-mono text-xs">
-                            {player.gc_level}/{player.faceit_level}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={getGcLevelBadgeClass(
+                                player.gc_level,
+                                'sm',
+                              )}
+                            >
+                              GC {player.gc_level}
+                            </span>
+                            <span
+                              className={getFaceitLevelBadgeClass(
+                                player.faceit_level,
+                                'sm',
+                              )}
+                            >
+                              FCT {player.faceit_level}
+                            </span>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -936,9 +970,24 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   {balanced.teamA.map((player) => (
                     <li key={player.id} className="flex justify-between">
                       <span>{player.nickname}</span>
-                      <span className="text-xs text-slate-400">
-                        {player.gc_level}/{player.faceit_level}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={getGcLevelBadgeClass(
+                            player.gc_level,
+                            'sm',
+                          )}
+                        >
+                          GC {player.gc_level}
+                        </span>
+                        <span
+                          className={getFaceitLevelBadgeClass(
+                            player.faceit_level,
+                            'sm',
+                          )}
+                        >
+                          FCT {player.faceit_level}
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -958,9 +1007,24 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   {balanced.teamB.map((player) => (
                     <li key={player.id} className="flex justify-between">
                       <span>{player.nickname}</span>
-                      <span className="text-xs text-slate-400">
-                        {player.gc_level}/{player.faceit_level}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={getGcLevelBadgeClass(
+                            player.gc_level,
+                            'sm',
+                          )}
+                        >
+                          GC {player.gc_level}
+                        </span>
+                        <span
+                          className={getFaceitLevelBadgeClass(
+                            player.faceit_level,
+                            'sm',
+                          )}
+                        >
+                          FCT {player.faceit_level}
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
