@@ -1,0 +1,47 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/local.properties
+**/GeneratedPluginRegistrant.java
+
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/App.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/.symlinks/
+**/GeneratedPluginRegistrant.swift
+
+# Web
+.firebase/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Secrets
+.env
+.env.*
+*.keystore
+*.jks
+*.p12
+
+# Supabase
+supabase/.env
+supabase/.temp
+supabase/.branches
+supabase/.local
