@@ -79,6 +79,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
   const [serverIp, setServerIp] = useState('');
   const [serverIpDraft, setServerIpDraft] = useState('');
   const [savingServerIp, setSavingServerIp] = useState(false);
+  const [leavingMix, setLeavingMix] = useState(false);
 
   const filledSlots = players.length;
   const isMixIdValid = Boolean(mixId && isUuid(mixId));
@@ -128,6 +129,9 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
     playerId && mixTeams?.teamB?.includes(playerId),
   );
   const isVetoLocked = mixStatus === 'live' || mixStatus === 'finished';
+  const isParticipant = Boolean(
+    playerId && players.some((player) => player.id === playerId),
+  );
 
   if (!mixId) {
     const content = (
@@ -548,6 +552,38 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
     }
   };
 
+  const handleLeaveMix = async () => {
+    if (!supabase) {
+      setStatus('Supabase nao configurado.');
+      return;
+    }
+    if (!playerId) {
+      setStatus('Faca login para sair do mix.');
+      return;
+    }
+    if (!isMixIdValid) {
+      setStatus('Mix ID invalido. Informe um UUID valido.');
+      return;
+    }
+
+    setLeavingMix(true);
+    const { error } = await supabase
+      .from('mix_participants')
+      .delete()
+      .eq('mix_id', mixId)
+      .eq('player_id', playerId);
+
+    setLeavingMix(false);
+    if (error) {
+      setStatus(error.message);
+      return;
+    }
+
+    setPlayers((prev) => prev.filter((player) => player.id !== playerId));
+    setStatus('Voce saiu do mix.');
+    window.location.assign('/mix');
+  };
+
   return (
     <div className={embedded ? 'flex flex-col gap-6' : 'page-shell'}>
       {!embedded && (
@@ -635,6 +671,17 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 <LinkIcon size={18} />
                 {copyState}
               </button>
+              {playerId && isParticipant && (
+                <button
+                  type="button"
+                  onClick={handleLeaveMix}
+                  disabled={leavingMix}
+                  className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <LogOut size={16} />
+                  {leavingMix ? 'Saindo...' : 'Sair do mix'}
+                </button>
+              )}
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">

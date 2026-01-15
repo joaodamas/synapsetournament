@@ -10,6 +10,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type ModalStep = 'format' | 'config' | 'link';
 
@@ -89,6 +90,25 @@ type TeamForm = {
   preferredRegion: string;
   rulesAccepted: boolean;
   roster: TeamMember[];
+};
+
+type TournamentRow = {
+  id: string;
+  name: string;
+  start_at: string | null;
+  end_at: string | null;
+  status: string | null;
+  max_teams: number | null;
+  format_type: string | null;
+  invite_code: string | null;
+  ruleset_id: string | null;
+  map_pool_id: string | null;
+  format_id: string | null;
+  registrations?: { count: number }[];
+};
+
+type TournamentsPageProps = {
+  playerId?: string;
 };
 
 const formatOptions = [
@@ -195,7 +215,77 @@ const rosterTemplate: TeamMember[] = [
   { slot: 'Reserva 2', nickname: '', steam: '', faceit: '', country: '', gameRole: '' },
 ];
 
-export const TournamentsPage = () => {
+const buildTournamentForm = (
+  overrides: Partial<TournamentForm> = {},
+): TournamentForm => ({
+  name: '',
+  description: '',
+  bannerFile: null,
+  bannerPreview: '',
+  discordLink: '',
+  streamLink: '',
+  organizerName: '',
+  organizerContact: '',
+  organizerEmail: '',
+  gameTitle: 'CS2',
+  timezone: 'America/Sao_Paulo',
+  location: 'Online',
+  startDate: '',
+  endDate: '',
+  seriesMain: 'BO3',
+  seriesGroups: 'Nao aplica',
+  seriesPlayoffs: 'Nao aplica',
+  seriesFinal: 'Nao aplica',
+  maxTeams: '',
+  seedCriteria: 'random',
+  checkInEnabled: false,
+  checkInWindow: '',
+  serverRegion: '',
+  mapVetoMethod: '',
+  mapPool: '',
+  delayPolicy: '',
+  woPolicy: '',
+  pausePolicy: '',
+  substitutionsPolicy: '',
+  antiCheat: '',
+  protestPolicy: '',
+  prizePool: '',
+  entryFee: '',
+  refundPolicy: '',
+  rulesLink: '',
+  officialChannel: '',
+  adminContacts: '',
+  languages: '',
+  visibility: 'publico',
+  inviteCode: '',
+  approvalRequired: false,
+  termsAccepted: false,
+  notes: '',
+  ...overrides,
+});
+
+const toInputDate = (value: string | null) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 16);
+};
+
+const toSupabaseDate = (value: string) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+};
+
+const formatDate = (value: string | null) => {
+  if (!value) return '--';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '--';
+  return date.toLocaleDateString('pt-BR');
+};
+
+export const TournamentsPage = ({ playerId }: TournamentsPageProps) => {
   const [showFormatModal, setShowFormatModal] = useState(false);
   const [modalStep, setModalStep] = useState<ModalStep>('format');
   const [modalNotice, setModalNotice] = useState<string | null>(null);
@@ -204,51 +294,19 @@ export const TournamentsPage = () => {
     useState<CreatedTournament | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
   const [registerCode, setRegisterCode] = useState<string | null>(null);
-  const [tournamentForm, setTournamentForm] = useState<TournamentForm>({
-    name: '',
-    description: '',
-    bannerFile: null,
-    bannerPreview: '',
-    discordLink: '',
-    streamLink: '',
-    organizerName: '',
-    organizerContact: '',
-    organizerEmail: '',
-    gameTitle: 'CS2',
-    timezone: 'America/Sao_Paulo',
-    location: 'Online',
-    startDate: '',
-    endDate: '',
-    seriesMain: 'BO3',
-    seriesGroups: 'Nao aplica',
-    seriesPlayoffs: 'Nao aplica',
-    seriesFinal: 'Nao aplica',
-    maxTeams: '',
-    seedCriteria: 'random',
-    checkInEnabled: false,
-    checkInWindow: '',
-    serverRegion: '',
-    mapVetoMethod: '',
-    mapPool: '',
-    delayPolicy: '',
-    woPolicy: '',
-    pausePolicy: '',
-    substitutionsPolicy: '',
-    antiCheat: '',
-    protestPolicy: '',
-    prizePool: '',
-    entryFee: '',
-    refundPolicy: '',
-    rulesLink: '',
-    officialChannel: '',
-    adminContacts: '',
-    languages: '',
-    visibility: 'publico',
-    inviteCode: '',
-    approvalRequired: false,
-    termsAccepted: false,
-    notes: '',
-  });
+  const [tournaments, setTournaments] = useState<TournamentRow[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [savingTournament, setSavingTournament] = useState(false);
+  const [editingIds, setEditingIds] = useState<{
+    tournamentId: string;
+    rulesetId: string | null;
+    mapPoolId: string | null;
+    formatId: string | null;
+  } | null>(null);
+  const [tournamentError, setTournamentError] = useState('');
+  const [tournamentForm, setTournamentForm] = useState<TournamentForm>(() =>
+    buildTournamentForm(),
+  );
 
   useEffect(() => {
     const readRegisterCode = () => {
@@ -267,11 +325,43 @@ export const TournamentsPage = () => {
     return () => URL.revokeObjectURL(tournamentForm.bannerPreview);
   }, [tournamentForm.bannerPreview]);
 
+  const loadTournaments = async () => {
+    if (!supabase || !playerId) {
+      setLoadingTournaments(false);
+      return;
+    }
+
+    setLoadingTournaments(true);
+    setTournamentError('');
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select(
+        'id, name, start_at, end_at, status, max_teams, format_type, invite_code, ruleset_id, map_pool_id, format_id, registrations(count)',
+      )
+      .eq('created_by_player_id', playerId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      setTournamentError(error.message);
+    } else {
+      setTournaments((data ?? []) as TournamentRow[]);
+    }
+    setLoadingTournaments(false);
+  };
+
+  useEffect(() => {
+    void loadTournaments();
+  }, [playerId]);
+
   const openModal = () => {
     setShowFormatModal(true);
     setModalStep('format');
     setModalNotice(null);
-    setSelectedFormatId((prev) => prev ?? formatOptions[0]?.id ?? null);
+    setSelectedFormatId(formatOptions[0]?.id ?? null);
+    setEditingIds(null);
+    setCreatedTournament(null);
+    setCopyState('idle');
+    setTournamentForm(buildTournamentForm());
   };
 
   const closeModal = () => {
@@ -333,7 +423,238 @@ export const TournamentsPage = () => {
     setRegisterCode(code);
   };
 
-  const handleCreateLink = () => {
+  const parseNumber = (value: string) => {
+    const normalized = value.replace(',', '.').trim();
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const buildMapsJson = (value: string) =>
+    value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const saveTournament = async () => {
+    if (!supabase) {
+      setModalNotice('Supabase nao configurado.');
+      return null;
+    }
+    if (!playerId) {
+      setModalNotice('ID do jogador nao encontrado.');
+      return null;
+    }
+    if (!selectedFormatId) {
+      setModalNotice('Selecione um formato para continuar.');
+      return null;
+    }
+
+    setSavingTournament(true);
+    setTournamentError('');
+    const inviteCode =
+      tournamentForm.inviteCode.trim() || createRegistrationCode();
+    const mapList = buildMapsJson(tournamentForm.mapPool);
+
+    const rulesetPayload = {
+      wo_score_rule: tournamentForm.woPolicy.trim() || null,
+      pause_policy_json: tournamentForm.pausePolicy
+        ? { text: tournamentForm.pausePolicy.trim() }
+        : {},
+      substitution_policy_json: tournamentForm.substitutionsPolicy
+        ? { text: tournamentForm.substitutionsPolicy.trim() }
+        : {},
+      anti_cheat_policy_json: tournamentForm.antiCheat
+        ? { text: tournamentForm.antiCheat.trim() }
+        : {},
+      protest_policy_json: tournamentForm.protestPolicy
+        ? { text: tournamentForm.protestPolicy.trim() }
+        : {},
+      result_reporting_mode: 'team_report',
+    };
+
+    const mapPoolPayload = {
+      name: tournamentForm.mapPool.trim() || 'Map pool',
+      maps_json: mapList,
+    };
+
+    const formatPayload = {
+      format_type: selectedFormatId,
+      phases_json: [
+        {
+          key: 'main',
+          series_main: tournamentForm.seriesMain,
+          series_groups: tournamentForm.seriesGroups,
+          series_playoffs: tournamentForm.seriesPlayoffs,
+          series_final: tournamentForm.seriesFinal,
+        },
+      ],
+    };
+
+    let rulesetId = editingIds?.rulesetId ?? null;
+    if (rulesetId) {
+      const { error } = await supabase
+        .from('rulesets')
+        .update(rulesetPayload)
+        .eq('id', rulesetId);
+      if (error) {
+        setModalNotice(error.message);
+        setSavingTournament(false);
+        return null;
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('rulesets')
+        .insert(rulesetPayload)
+        .select('id')
+        .single();
+      if (error || !data) {
+        setModalNotice(error?.message ?? 'Erro ao salvar regras.');
+        setSavingTournament(false);
+        return null;
+      }
+      rulesetId = data.id;
+    }
+
+    let mapPoolId = editingIds?.mapPoolId ?? null;
+    if (mapPoolId) {
+      const { error } = await supabase
+        .from('map_pools')
+        .update(mapPoolPayload)
+        .eq('id', mapPoolId);
+      if (error) {
+        setModalNotice(error.message);
+        setSavingTournament(false);
+        return null;
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('map_pools')
+        .insert(mapPoolPayload)
+        .select('id')
+        .single();
+      if (error || !data) {
+        setModalNotice(error?.message ?? 'Erro ao salvar map pool.');
+        setSavingTournament(false);
+        return null;
+      }
+      mapPoolId = data.id;
+    }
+
+    let formatId = editingIds?.formatId ?? null;
+    if (formatId) {
+      const { error } = await supabase
+        .from('tournament_formats')
+        .update(formatPayload)
+        .eq('id', formatId);
+      if (error) {
+        setModalNotice(error.message);
+        setSavingTournament(false);
+        return null;
+      }
+    } else {
+      const { data, error } = await supabase
+        .from('tournament_formats')
+        .insert(formatPayload)
+        .select('id')
+        .single();
+      if (error || !data) {
+        setModalNotice(error?.message ?? 'Erro ao salvar formato.');
+        setSavingTournament(false);
+        return null;
+      }
+      formatId = data.id;
+    }
+
+    const tournamentPayload = {
+      name: tournamentForm.name.trim(),
+      game_name: tournamentForm.gameTitle.trim(),
+      format: selectedFormatId,
+      description_short: tournamentForm.description.trim(),
+      description_full: tournamentForm.description.trim(),
+      timezone: tournamentForm.timezone.trim(),
+      banner_url: null,
+      visibility: tournamentForm.visibility,
+      invite_code: inviteCode,
+      status: 'draft',
+      start_at: toSupabaseDate(tournamentForm.startDate),
+      end_at: toSupabaseDate(tournamentForm.endDate),
+      max_teams: parseNumber(tournamentForm.maxTeams),
+      max_participants: parseNumber(tournamentForm.maxTeams),
+      seeding_mode: tournamentForm.seedCriteria.trim(),
+      checkin_enabled: tournamentForm.checkInEnabled,
+      checkin_open_minutes_before: parseNumber(tournamentForm.checkInWindow),
+      checkin_close_minutes_before: null,
+      ruleset_id: rulesetId,
+      map_pool_id: mapPoolId,
+      format_id: formatId,
+      format_type: selectedFormatId,
+      created_by_player_id: playerId,
+      organizer_name: tournamentForm.organizerName.trim(),
+      organizer_contact: tournamentForm.organizerContact.trim(),
+      organizer_email: tournamentForm.organizerEmail.trim(),
+      discord_link: tournamentForm.discordLink.trim(),
+      stream_link: tournamentForm.streamLink.trim(),
+      rules_link: tournamentForm.rulesLink.trim(),
+      official_channel: tournamentForm.officialChannel.trim(),
+      admin_contacts: tournamentForm.adminContacts.trim(),
+      languages: tournamentForm.languages.trim(),
+      location: tournamentForm.location.trim(),
+      server_region: tournamentForm.serverRegion.trim(),
+      map_veto_method: tournamentForm.mapVetoMethod.trim(),
+      delay_policy: tournamentForm.delayPolicy.trim(),
+      wo_policy: tournamentForm.woPolicy.trim(),
+      pause_policy: tournamentForm.pausePolicy.trim(),
+      substitutions_policy: tournamentForm.substitutionsPolicy.trim(),
+      anti_cheat: tournamentForm.antiCheat.trim(),
+      protest_policy: tournamentForm.protestPolicy.trim(),
+      prize_pool: tournamentForm.prizePool.trim(),
+      entry_fee: tournamentForm.entryFee.trim(),
+      refund_policy: tournamentForm.refundPolicy.trim(),
+      approval_required: tournamentForm.approvalRequired,
+      notes: tournamentForm.notes.trim(),
+    };
+
+    if (editingIds?.tournamentId) {
+      const { error } = await supabase
+        .from('tournaments')
+        .update(tournamentPayload)
+        .eq('id', editingIds.tournamentId);
+      if (error) {
+        setModalNotice(error.message);
+        setSavingTournament(false);
+        return null;
+      }
+      setSavingTournament(false);
+      return {
+        id: editingIds.tournamentId,
+        name: tournamentPayload.name,
+        formatId: selectedFormatId,
+        registerCode: inviteCode,
+      };
+    }
+
+    const { data, error } = await supabase
+      .from('tournaments')
+      .insert(tournamentPayload)
+      .select('id')
+      .single();
+
+    if (error || !data) {
+      setModalNotice(error?.message ?? 'Erro ao criar torneio.');
+      setSavingTournament(false);
+      return null;
+    }
+
+    setSavingTournament(false);
+    return {
+      id: data.id,
+      name: tournamentPayload.name,
+      formatId: selectedFormatId,
+      registerCode: inviteCode,
+    };
+  };
+
+  const handleCreateLink = async () => {
     if (!selectedFormatId) {
       setModalNotice('Selecione um formato para continuar.');
       return;
@@ -365,15 +686,24 @@ export const TournamentsPage = () => {
       return;
     }
 
-    const register = createRegistrationCode();
-    setCreatedTournament({
-      id: register,
-      name: tournamentForm.name.trim(),
-      formatId: selectedFormatId,
-      registerCode: register,
-    });
-    setModalStep('link');
-    setModalNotice(null);
+    const saved = await saveTournament();
+    if (!saved) {
+      return;
+    }
+    if (editingIds) {
+      setCreatedTournament(null);
+      setModalNotice('Torneio atualizado.');
+      setModalStep('config');
+    } else {
+      setCreatedTournament(saved);
+      setModalNotice(null);
+      setModalStep('link');
+      setTournamentForm((prev) => ({
+        ...prev,
+        inviteCode: saved.registerCode,
+      }));
+    }
+    await loadTournaments();
   };
 
   const handleCopyLink = (code: string) => {
@@ -382,14 +712,207 @@ export const TournamentsPage = () => {
     setTimeout(() => setCopyState('idle'), 2000);
   };
 
+  const handleEditTournament = async (tournamentId: string) => {
+    if (!supabase) {
+      setTournamentError('Supabase nao configurado.');
+      return;
+    }
+
+    setCreatedTournament(null);
+    setCopyState('idle');
+
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select(
+        `id,
+        name,
+        game_name,
+        format,
+        description_short,
+        description_full,
+        timezone,
+        banner_url,
+        visibility,
+        invite_code,
+        status,
+        start_at,
+        end_at,
+        max_teams,
+        seeding_mode,
+        checkin_enabled,
+        checkin_open_minutes_before,
+        server_region,
+        map_veto_method,
+        delay_policy,
+        wo_policy,
+        pause_policy,
+        substitutions_policy,
+        anti_cheat,
+        protest_policy,
+        prize_pool,
+        entry_fee,
+        refund_policy,
+        rules_link,
+        official_channel,
+        admin_contacts,
+        languages,
+        location,
+        organizer_name,
+        organizer_contact,
+        organizer_email,
+        discord_link,
+        stream_link,
+        approval_required,
+        notes,
+        format_type,
+        ruleset_id,
+        map_pool_id,
+        format_id,
+        rulesets (
+          wo_score_rule,
+          pause_policy_json,
+          substitution_policy_json,
+          anti_cheat_policy_json,
+          protest_policy_json
+        ),
+        map_pools (
+          name,
+          maps_json
+        ),
+        tournament_formats (
+          format_type,
+          phases_json
+        )`,
+      )
+      .eq('id', tournamentId)
+      .single();
+
+    if (error || !data) {
+      setTournamentError(error?.message ?? 'Erro ao carregar torneio.');
+      return;
+    }
+
+    const mapList = Array.isArray(data.map_pools?.maps_json)
+      ? data.map_pools.maps_json.join(', ')
+      : data.map_pools?.name ?? '';
+    const phases = Array.isArray(data.tournament_formats?.phases_json)
+      ? data.tournament_formats?.phases_json?.[0]
+      : null;
+
+    setSelectedFormatId(
+      data.format_type ??
+        data.format ??
+        data.tournament_formats?.format_type ??
+        formatOptions[0]?.id ??
+        null,
+    );
+    setEditingIds({
+      tournamentId: data.id,
+      rulesetId: data.ruleset_id,
+      mapPoolId: data.map_pool_id,
+      formatId: data.format_id,
+    });
+    setTournamentForm(
+      buildTournamentForm({
+        name: data.name ?? '',
+        gameTitle: data.game_name ?? 'CS2',
+        description: data.description_full ?? data.description_short ?? '',
+        bannerPreview: data.banner_url ?? '',
+        discordLink: data.discord_link ?? '',
+        streamLink: data.stream_link ?? '',
+        organizerName: data.organizer_name ?? '',
+        organizerContact: data.organizer_contact ?? '',
+        organizerEmail: data.organizer_email ?? '',
+        gameTitle: 'CS2',
+        timezone: data.timezone ?? 'America/Sao_Paulo',
+        location: data.location ?? 'Online',
+        startDate: toInputDate(data.start_at),
+        endDate: toInputDate(data.end_at),
+        seriesMain: phases?.series_main ?? 'BO3',
+        seriesGroups: phases?.series_groups ?? 'Nao aplica',
+        seriesPlayoffs: phases?.series_playoffs ?? 'Nao aplica',
+        seriesFinal: phases?.series_final ?? 'Nao aplica',
+        maxTeams: data.max_teams?.toString() ?? '',
+        seedCriteria: data.seeding_mode ?? 'random',
+        checkInEnabled: Boolean(data.checkin_enabled),
+        checkInWindow: data.checkin_open_minutes_before?.toString() ?? '',
+        serverRegion: data.server_region ?? '',
+        mapVetoMethod: data.map_veto_method ?? '',
+        mapPool: mapList,
+        delayPolicy: data.delay_policy ?? '',
+        woPolicy: data.wo_policy ?? '',
+        pausePolicy:
+          data.pause_policy ??
+          data.rulesets?.pause_policy_json?.text ??
+          '',
+        substitutionsPolicy:
+          data.substitutions_policy ??
+          data.rulesets?.substitution_policy_json?.text ??
+          '',
+        antiCheat:
+          data.anti_cheat ?? data.rulesets?.anti_cheat_policy_json?.text ?? '',
+        protestPolicy:
+          data.protest_policy ??
+          data.rulesets?.protest_policy_json?.text ??
+          '',
+        prizePool: data.prize_pool ?? '',
+        entryFee: data.entry_fee ?? '',
+        refundPolicy: data.refund_policy ?? '',
+        rulesLink: data.rules_link ?? '',
+        officialChannel: data.official_channel ?? '',
+        adminContacts: data.admin_contacts ?? '',
+        languages: data.languages ?? '',
+        visibility: data.visibility ?? 'publico',
+        inviteCode: data.invite_code ?? '',
+        approvalRequired: Boolean(data.approval_required),
+        termsAccepted: true,
+        notes: data.notes ?? '',
+      }),
+    );
+    setShowFormatModal(true);
+    setModalStep('config');
+    setModalNotice(null);
+  };
+
   const selectedFormat = formatOptions.find(
     (format) => format.id === selectedFormatId,
   );
+
+  const resolveStatusMeta = (row: TournamentRow) => {
+    if (row.status === 'cancelled') {
+      return { label: 'Cancelado', tone: 'bg-rose-50 text-rose-500' };
+    }
+    if (row.status === 'completed') {
+      return { label: 'Finalizado', tone: 'bg-slate-200 text-slate-600' };
+    }
+    if (row.status === 'checkin_open') {
+      return { label: 'Check-in', tone: 'bg-amber-50 text-amber-600' };
+    }
+    if (row.status === 'live') {
+      return { label: 'Em andamento', tone: 'bg-emerald-50 text-emerald-600' };
+    }
+
+    if (row.start_at) {
+      const start = new Date(row.start_at);
+      const end = row.end_at ? new Date(row.end_at) : null;
+      const now = new Date();
+      if (end && now >= end) {
+        return { label: 'Finalizado', tone: 'bg-slate-200 text-slate-600' };
+      }
+      if (!Number.isNaN(start.getTime()) && now >= start) {
+        return { label: 'Em andamento', tone: 'bg-emerald-50 text-emerald-600' };
+      }
+      return { label: 'Nao iniciado', tone: 'bg-slate-100 text-slate-500' };
+    }
+
+    return { label: 'Nao iniciado', tone: 'bg-slate-100 text-slate-500' };
+  };
 
   if (registerCode) {
     return (
       <TeamRegistration
         registerCode={registerCode}
+        playerId={playerId}
         onBack={() => updateRegisterQuery(null)}
       />
     );
@@ -488,6 +1011,82 @@ export const TournamentsPage = () => {
             Assim que criar um bracket, ele aparece aqui.
           </p>
         </div>
+      </section>
+
+      <section className="rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
+              Torneios criados
+            </p>
+            <h2 className="mt-2 text-xl font-black text-slate-900">
+              Seus campeonatos
+            </h2>
+          </div>
+          {tournamentError && (
+            <span className="rounded-full bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-500">
+              {tournamentError}
+            </span>
+          )}
+        </div>
+
+        {loadingTournaments ? (
+          <div className="mt-6 text-sm text-slate-400">Carregando torneios...</div>
+        ) : tournaments.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-5 text-sm text-slate-500">
+            Nenhum torneio criado ainda. Clique em "Novo torneio" para comecar.
+          </div>
+        ) : (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                <tr>
+                  <th className="py-3 pr-6">Torneio</th>
+                  <th className="py-3 pr-6">Inicio</th>
+                  <th className="py-3 pr-6">Fim</th>
+                  <th className="py-3 pr-6">Status</th>
+                  <th className="py-3 pr-6 text-center">Times</th>
+                  <th className="py-3 pr-6 text-right">Acoes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {tournaments.map((tournament) => {
+                  const meta = resolveStatusMeta(tournament);
+                  const teamCount = tournament.registrations?.[0]?.count ?? 0;
+                  return (
+                    <tr key={tournament.id} className="text-slate-600">
+                      <td className="py-4 pr-6 font-semibold text-slate-800">
+                        {tournament.name}
+                      </td>
+                      <td className="py-4 pr-6">{formatDate(tournament.start_at)}</td>
+                      <td className="py-4 pr-6">{formatDate(tournament.end_at)}</td>
+                      <td className="py-4 pr-6">
+                        <span
+                          className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] ${meta.tone}`}
+                        >
+                          {meta.label}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-6 text-center font-semibold text-slate-700">
+                        {teamCount}
+                        {tournament.max_teams ? ` / ${tournament.max_teams}` : ''}
+                      </td>
+                      <td className="py-4 pr-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleEditTournament(tournament.id)}
+                          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 transition hover:bg-slate-50"
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {showFormatModal && (
@@ -1193,9 +1792,14 @@ export const TournamentsPage = () => {
                     <button
                       type="button"
                       onClick={handleCreateLink}
-                      className="flex-1 rounded-2xl bg-slate-900 px-4 py-3 text-xs font-black uppercase tracking-[0.3em] text-white transition hover:bg-slate-800"
+                      disabled={savingTournament}
+                      className="flex-1 rounded-2xl bg-slate-900 px-4 py-3 text-xs font-black uppercase tracking-[0.3em] text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Gerar link
+                      {savingTournament
+                        ? 'Salvando...'
+                        : editingIds
+                          ? 'Salvar'
+                          : 'Gerar link'}
                     </button>
                   </div>
                 </div>
@@ -1337,12 +1941,18 @@ const FieldTextarea = ({
 
 const TeamRegistration = ({
   registerCode,
+  playerId,
   onBack,
 }: {
   registerCode: string;
+  playerId?: string;
   onBack: () => void;
 }) => {
   const [notice, setNotice] = useState<string | null>(null);
+  const [tournamentId, setTournamentId] = useState<string | null>(null);
+  const [tournamentName, setTournamentName] = useState<string | null>(null);
+  const [loadingTournament, setLoadingTournament] = useState(true);
+  const [savingTeam, setSavingTeam] = useState(false);
   const [teamForm, setTeamForm] = useState<TeamForm>({
     teamName: '',
     teamTag: '',
@@ -1358,6 +1968,48 @@ const TeamRegistration = ({
     rulesAccepted: false,
     roster: rosterTemplate.map((player) => ({ ...player })),
   });
+
+  useEffect(() => {
+    if (!playerId) return;
+    setTeamForm((prev) =>
+      prev.managerUserId
+        ? prev
+        : {
+            ...prev,
+            managerUserId: playerId,
+          },
+    );
+  }, [playerId]);
+
+  useEffect(() => {
+    const fetchTournament = async () => {
+      if (!supabase) {
+        setNotice('Supabase nao configurado.');
+        setLoadingTournament(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('id, name')
+        .eq('invite_code', registerCode)
+        .single();
+
+      if (error || !data) {
+        setNotice(
+          error?.message ?? 'Nao foi possivel localizar o torneio.',
+        );
+        setLoadingTournament(false);
+        return;
+      }
+
+      setTournamentId(data.id);
+      setTournamentName(data.name);
+      setLoadingTournament(false);
+    };
+
+    void fetchTournament();
+  }, [registerCode]);
 
   useEffect(() => {
     if (!teamForm.logoPreview) return undefined;
@@ -1392,7 +2044,7 @@ const TeamRegistration = ({
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !teamForm.teamName.trim() ||
       !teamForm.teamTag.trim() ||
@@ -1405,6 +2057,93 @@ const TeamRegistration = ({
       );
       return;
     }
+
+    if (!tournamentId) {
+      setNotice('Torneio nao encontrado.');
+      return;
+    }
+
+    const requiredPlayers = teamForm.roster.slice(0, 5);
+    const missingPlayers = requiredPlayers.some(
+      (player) => !player.nickname.trim() || !player.steam.trim(),
+    );
+    if (missingPlayers) {
+      setNotice('Preencha nickname e Steam dos 5 titulares.');
+      return;
+    }
+
+    if (!supabase) {
+      setNotice('Supabase nao configurado.');
+      return;
+    }
+
+    setSavingTeam(true);
+    const captainId =
+      teamForm.managerUserId.trim() || playerId || null;
+
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .insert({
+        name: teamForm.teamName.trim(),
+        tag: teamForm.teamTag.trim(),
+        logo_url: null,
+        manager_name: teamForm.managerName.trim(),
+        manager_contact: teamForm.managerContact.trim(),
+        manager_email: teamForm.managerEmail.trim(),
+        captain_player_id: captainId || null,
+        discord_team: teamForm.teamDiscord.trim(),
+        availability: teamForm.availability.trim(),
+        preferred_region: teamForm.preferredRegion.trim(),
+      })
+      .select('id')
+      .single();
+
+    if (teamError || !teamData) {
+      setNotice(teamError?.message ?? 'Erro ao salvar equipe.');
+      setSavingTeam(false);
+      return;
+    }
+
+    const membersPayload = teamForm.roster
+      .filter((player) => player.nickname.trim() || player.steam.trim())
+      .map((player) => ({
+        team_id: teamData.id,
+        player_id: null,
+        nickname: player.nickname.trim() || 'Jogador',
+        steam_id64: player.steam.trim() || null,
+        faceit_id: player.faceit.trim() || null,
+        role: player.gameRole.trim() || null,
+        is_sub: player.slot.toLowerCase().includes('reserva'),
+        is_active: Boolean(player.nickname.trim()),
+      }));
+
+    if (membersPayload.length > 0) {
+      const { error: membersError } = await supabase
+        .from('team_members')
+        .insert(membersPayload);
+      if (membersError) {
+        setNotice(membersError.message);
+        setSavingTeam(false);
+        return;
+      }
+    }
+
+    const { error: registrationError } = await supabase
+      .from('registrations')
+      .insert({
+        tournament_id: tournamentId,
+        team_id: teamData.id,
+        status: 'pending',
+        locked_roster: false,
+      });
+
+    if (registrationError) {
+      setNotice(registrationError.message);
+      setSavingTeam(false);
+      return;
+    }
+
+    setSavingTeam(false);
     setNotice('Inscricao enviada. Aguarde confirmacao do organizador.');
   };
 
@@ -1420,6 +2159,13 @@ const TeamRegistration = ({
           </h1>
           <p className="mt-3 text-slate-500">
             Codigo do campeonato: <strong>{registerCode}</strong>
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            {loadingTournament
+              ? 'Carregando informacoes do torneio...'
+              : tournamentName
+                ? `Torneio: ${tournamentName}`
+                : 'Torneio nao encontrado'}
           </p>
         </div>
         <button
@@ -1633,9 +2379,10 @@ const TeamRegistration = ({
           <button
             type="button"
             onClick={handleSubmit}
-            className="rounded-2xl bg-slate-900 px-6 py-3 text-xs font-black uppercase tracking-[0.3em] text-white transition hover:bg-slate-800"
+            disabled={savingTeam || loadingTournament}
+            className="rounded-2xl bg-slate-900 px-6 py-3 text-xs font-black uppercase tracking-[0.3em] text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Enviar inscricao
+            {savingTeam ? 'Enviando...' : 'Enviar inscricao'}
           </button>
         </div>
       </div>

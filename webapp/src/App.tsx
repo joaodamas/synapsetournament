@@ -167,7 +167,7 @@ const AuthenticatedApp = ({ mixId, playerId, onLogout }: AuthenticatedAppProps) 
   if (activeTab === 'mix') {
     content = <MixLobby mixId={mixId} embedded />;
   } else if (activeTab === 'torneios') {
-    content = <TournamentsPage />;
+    content = <TournamentsPage playerId={playerId} />;
   } else if (activeTab === 'ranking') {
     content = <GlobalLeaderboard />;
   } else if (activeTab === 'perfil') {
