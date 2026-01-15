@@ -78,6 +78,8 @@ create table players (
   faceit_level int not null default 0,
   gc_level int not null default 0,
   avatar_url text,
+  gc_profile_url text,
+  faceit_profile_url text,
   elo_interno int not null default 1000,
   created_at timestamptz not null default now()
 );

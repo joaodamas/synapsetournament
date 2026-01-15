@@ -11,6 +11,8 @@ type PlayerProfile = {
   avatar_url: string | null;
   gc_level: number;
   faceit_level: number;
+  gc_profile_url: string | null;
+  faceit_profile_url: string | null;
   elo_interno: number;
 };
 
@@ -24,6 +26,12 @@ type ProfilePageProps = {
   playerId: string;
 };
 
+type SyncLevelsResponse = {
+  player?: PlayerProfile | null;
+  warnings?: string[];
+  error?: string;
+};
+
 const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
 
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
@@ -33,6 +41,12 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
     adr: '--',
     winrate: '--',
   });
+  const [gcProfileUrl, setGcProfileUrl] = useState('');
+  const [faceitProfileUrl, setFaceitProfileUrl] = useState('');
+  const [savingProfile, setSavingProfile] = useState<
+    'gc' | 'faceit' | null
+  >(null);
+  const [profileStatus, setProfileStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -46,7 +60,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
 
       const { data: player, error: playerError } = await supabase
         .from('players')
-        .select('id, nickname, avatar_url, gc_level, faceit_level, elo_interno')
+        .select(
+          'id, nickname, avatar_url, gc_level, faceit_level, gc_profile_url, faceit_profile_url, elo_interno',
+        )
         .eq('id', playerId)
         .single();
 
@@ -57,6 +73,8 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       }
 
       setUser(player as PlayerProfile);
+      setGcProfileUrl(player.gc_profile_url ?? '');
+      setFaceitProfileUrl(player.faceit_profile_url ?? '');
 
       const { data: matchStats, error: statsError } = await supabase
         .from('match_stats')
@@ -154,6 +172,62 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
     );
   }
 
+  const handleSaveProfile = async (provider: 'gc' | 'faceit') => {
+    if (!supabase) {
+      setProfileStatus('Supabase nao configurado.');
+      return;
+    }
+
+    const url =
+      provider === 'gc' ? gcProfileUrl.trim() : faceitProfileUrl.trim();
+
+    if (!url) {
+      setProfileStatus(
+        provider === 'gc'
+          ? 'Informe o link do perfil da GamersClub.'
+          : 'Informe o link do perfil da Faceit.',
+      );
+      return;
+    }
+
+    setSavingProfile(provider);
+    setProfileStatus('');
+
+    const body =
+      provider === 'gc'
+        ? { playerId, gcProfileUrl: url }
+        : { playerId, faceitProfileUrl: url };
+
+    const { data, error: invokeError } =
+      await supabase.functions.invoke<SyncLevelsResponse>('sync-levels', {
+        body,
+      });
+
+    if (invokeError) {
+      setProfileStatus(invokeError.message);
+      setSavingProfile(null);
+      return;
+    }
+
+    if (data?.error) {
+      setProfileStatus(data.error);
+      setSavingProfile(null);
+      return;
+    }
+
+    if (data?.player) {
+      setUser(data.player);
+      setGcProfileUrl(data.player.gc_profile_url ?? '');
+      setFaceitProfileUrl(data.player.faceit_profile_url ?? '');
+    }
+
+    const warningText = data?.warnings?.filter(Boolean).join(' ');
+    setProfileStatus(
+      warningText || 'Perfil vinculado. Niveis atualizados.',
+    );
+    setSavingProfile(null);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-12">
       <div className="mx-auto max-w-6xl">
@@ -223,6 +297,76 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                     style={{ height: `${height}%` }}
                   />
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-12 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-black uppercase tracking-[0.2em] text-slate-800">
+                Vincular perfis
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                Conecte seus perfis para sincronizar os niveis de GC e Faceit.
+              </p>
+            </div>
+            {profileStatus && (
+              <span className="text-xs font-semibold text-blue-600">
+                {profileStatus}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                GamersClub
+              </p>
+              <input
+                value={gcProfileUrl}
+                onChange={(event) => setGcProfileUrl(event.target.value)}
+                placeholder="https://www.gamersclub.com.br/..."
+                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500"
+              />
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Nivel atual: <strong>{user.gc_level}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSaveProfile('gc')}
+                  disabled={savingProfile === 'gc'}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                >
+                  {savingProfile === 'gc' ? 'Salvando...' : 'Vincular'}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                Faceit
+              </p>
+              <input
+                value={faceitProfileUrl}
+                onChange={(event) => setFaceitProfileUrl(event.target.value)}
+                placeholder="https://www.faceit.com/..."
+                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500"
+              />
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Nivel atual: <strong>{user.faceit_level}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSaveProfile('faceit')}
+                  disabled={savingProfile === 'faceit'}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                >
+                  {savingProfile === 'faceit' ? 'Salvando...' : 'Vincular'}
+                </button>
               </div>
             </div>
           </div>
