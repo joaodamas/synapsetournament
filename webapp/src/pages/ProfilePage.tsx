@@ -716,7 +716,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                 {faceitMaps.length > 0 && (
                   <div className="rounded-sm border border-white/10 bg-[#0b0f14] p-5">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
                         Mapas mais jogados
                       </p>
                     </div>
@@ -724,21 +724,33 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                       {faceitMaps.map((map) => (
                         <div
                           key={map.name}
-                          className="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3"
+                          className="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-[#00f2ff]/20 bg-[#0f1115] px-4 py-3"
                         >
                           <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                            <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-100">
                               {formatFaceitMapName(map.name)}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-[10px] font-mono text-[#7ff7ff]">
                               Matches {formatFaceitCount(map.matches)}
                             </p>
                           </div>
-                          <div className="flex flex-wrap gap-4 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
-                            <span>WR {formatFaceitPercent(map.winRate)}</span>
-                            <span>KD {formatFaceitValue(map.kd)}</span>
-                            <span>ADR {formatFaceitValue(map.adr, 1)}</span>
-                            <span>HS {formatFaceitPercent(map.hsPercent)}</span>
+                          <div className="flex flex-wrap gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-slate-100">
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-[#00f2ff]/30 bg-white/5 px-2 py-1 shadow-[0_0_10px_rgba(0,242,255,0.12)]">
+                              <span className="text-slate-400">WR</span>
+                              {formatFaceitPercent(map.winRate)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-[#00f2ff]/30 bg-white/5 px-2 py-1 shadow-[0_0_10px_rgba(0,242,255,0.12)]">
+                              <span className="text-slate-400">KD</span>
+                              {formatFaceitValue(map.kd)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-[#00f2ff]/30 bg-white/5 px-2 py-1 shadow-[0_0_10px_rgba(0,242,255,0.12)]">
+                              <span className="text-slate-400">ADR</span>
+                              {formatFaceitValue(map.adr, 1)}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-[#00f2ff]/30 bg-white/5 px-2 py-1 shadow-[0_0_10px_rgba(0,242,255,0.12)]">
+                              <span className="text-slate-400">HS</span>
+                              {formatFaceitPercent(map.hsPercent)}
+                            </span>
                           </div>
                         </div>
                       ))}
