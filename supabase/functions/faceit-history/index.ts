@@ -17,6 +17,18 @@ const extractFaceitNickname = (value: string) => {
   return trimmed;
 };
 
+const toNumber = (value: unknown) => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.replace('%', '').replace(',', '.').trim();
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
 const fetchFaceitPlayer = async (nickname: string) => {
   const url = `https://open.faceit.com/data/v4/players?nickname=${encodeURIComponent(
     nickname,
@@ -66,6 +78,46 @@ const fetchFaceitHistory = async (
 
   const payload = await response.json();
   return { data: payload };
+};
+
+const fetchFaceitMatchStats = async (matchId: string) => {
+  const url = `https://open.faceit.com/data/v4/matches/${matchId}/stats`;
+  const response = await fetch(url, {
+    headers: {
+      accept: 'application/json',
+      Authorization: `Bearer ${faceitApiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    return { error: 'Nao foi possivel consultar o placar da Faceit.' };
+  }
+
+  const payload = await response.json();
+  return { data: payload };
+};
+
+const extractPlayerScore = (
+  payload: Record<string, unknown>,
+  playerId: string,
+) => {
+  const rounds = Array.isArray(payload?.rounds) ? payload.rounds : [];
+  for (const round of rounds) {
+    const teams = Array.isArray(round?.teams) ? round.teams : [];
+    for (const team of teams) {
+      const players = Array.isArray(team?.players) ? team.players : [];
+      for (const player of players) {
+        if (player?.player_id !== playerId) {
+          continue;
+        }
+        const stats = (player?.player_stats as Record<string, unknown>) ?? {};
+        const kills = toNumber(stats?.Kills ?? stats?.kills);
+        const deaths = toNumber(stats?.Deaths ?? stats?.deaths);
+        return { kills, deaths };
+      }
+    }
+  }
+  return { kills: null, deaths: null };
 };
 
 Deno.serve(async (req) => {
@@ -133,16 +185,37 @@ Deno.serve(async (req) => {
     });
   }
 
-  const matches = (history.data?.items ?? []).map((item: Record<string, unknown>) => ({
-    id: (item?.match_id as string) ?? '',
-    competitionName: (item?.competition_name as string) ?? 'Faceit',
-    game: (item?.game_id as string) ?? null,
-    region: (item?.region as string) ?? null,
-    startedAt: (item?.started_at as number) ?? null,
-    finishedAt: (item?.finished_at as number) ?? null,
-    winner: (item?.results as { winner?: string } | undefined)?.winner ?? null,
-    score: (item?.results as { score?: Record<string, string> } | undefined)?.score ?? null,
-  }));
+  const matches = await Promise.all(
+    (history.data?.items ?? []).map(async (item: Record<string, unknown>) => {
+      const matchId = (item?.match_id as string) ?? '';
+      let kills: number | null = null;
+      let deaths: number | null = null;
+
+      if (matchId) {
+        const stats = await fetchFaceitMatchStats(matchId);
+        if (!stats.error && stats.data) {
+          const score = extractPlayerScore(stats.data, player.playerId);
+          kills = score.kills;
+          deaths = score.deaths;
+        }
+      }
+
+      return {
+        id: matchId,
+        competitionName: (item?.competition_name as string) ?? 'Faceit',
+        game: (item?.game_id as string) ?? null,
+        region: (item?.region as string) ?? null,
+        startedAt: (item?.started_at as number) ?? null,
+        finishedAt: (item?.finished_at as number) ?? null,
+        winner: (item?.results as { winner?: string } | undefined)?.winner ?? null,
+        score:
+          (item?.results as { score?: Record<string, string> } | undefined)
+            ?.score ?? null,
+        kills,
+        deaths,
+      };
+    }),
+  );
 
   return new Response(JSON.stringify({ matches }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -37,6 +37,8 @@ type FaceitMatch = {
   finishedAt: number | null;
   winner: string | null;
   score: Record<string, string> | null;
+  kills?: number | null;
+  deaths?: number | null;
 };
 
 type ProfilePageProps = {
@@ -779,18 +781,35 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                                 {formatFaceitDate(match.startedAt)}
                               </p>
                             </div>
-                            <div className="text-center">
-                              <p className="text-xs font-bold uppercase text-slate-500">
-                                Placar
-                              </p>
-                              <p className="text-lg font-black text-slate-100">
-                                {score}
-                              </p>
-                            </div>
-                            <a
-                              href={buildFaceitMatchUrl(match.id)}
-                              target="_blank"
-                              rel="noreferrer"
+                          <div className="text-center">
+                            <p className="text-xs font-bold uppercase text-slate-500">
+                              Placar
+                            </p>
+                            <p className="text-lg font-black text-slate-100">
+                              {score}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs font-bold uppercase text-slate-500">
+                              K / D
+                            </p>
+                            <p className="text-lg font-black text-slate-100">
+                              {formatFaceitCount(match.kills)} /{' '}
+                              {formatFaceitCount(match.deaths)}
+                            </p>
+                            <p
+                              className={`text-[10px] font-black uppercase ${getFaceitDiffClass(
+                                match.kills ?? null,
+                                match.deaths ?? null,
+                              )}`}
+                            >
+                              Diff {formatFaceitDiff(match.kills ?? null, match.deaths ?? null)}
+                            </p>
+                          </div>
+                          <a
+                            href={buildFaceitMatchUrl(match.id)}
+                            target="_blank"
+                            rel="noreferrer"
                               className="rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
                             >
                               Ver
