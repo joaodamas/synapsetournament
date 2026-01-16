@@ -184,6 +184,28 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
+const getFunctionErrorMessage = (invokeError: unknown) => {
+  if (!invokeError || typeof invokeError !== 'object') {
+    return 'Falha ao executar a funcao.';
+  }
+  const error = invokeError as {
+    message?: string;
+    context?: { body?: string; status?: number };
+  };
+  const contextBody = error.context?.body;
+  if (contextBody) {
+    try {
+      const parsed = JSON.parse(contextBody) as { error?: string };
+      if (parsed?.error) {
+        return parsed.error;
+      }
+    } catch (_err) {
+      return contextBody;
+    }
+  }
+  return error.message ?? 'Falha ao executar a funcao.';
+};
+
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [user, setUser] = useState<PlayerProfile | null>(null);
   const [stats, setStats] = useState<PlayerStats>({
@@ -563,8 +585,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const handleGcImageUrlChange = (value: string) => {
     const nextValue = value.trim();
     setGcStatsImageUrl(value);
-    setGcStatsImageFile(null);
-    setGcStatsPreview(nextValue);
+    if (!gcStatsImageFile) {
+      setGcStatsPreview(nextValue);
+    }
   };
 
   const handleGcStatsImport = async (mode: 'image' | 'link') => {
@@ -617,7 +640,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       });
 
     if (invokeError) {
-      setGcStatsError(invokeError.message);
+      setGcStatsError(getFunctionErrorMessage(invokeError));
       setGcStatsLoading(false);
       return;
     }
@@ -1095,6 +1118,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                         placeholder="https://..."
                         className="mt-2 w-full rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3 text-sm font-semibold text-slate-200 outline-none transition focus:border-[#00f2ff]"
                       />
+                      <p className="mt-2 text-[10px] uppercase tracking-[0.25em] text-slate-500">
+                        Se o arquivo estiver selecionado, o link e ignorado.
+                      </p>
                     </div>
                   </div>
 

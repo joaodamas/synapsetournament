@@ -80,10 +80,21 @@ const parseStatsFromOcr = async (imageUrl?: string, imageBase64?: string) => {
   });
 
   if (!response.ok) {
-    return { error: 'Nao foi possivel ler o print da GamersClub.' };
+    const detail = await response.text();
+    return {
+      error: `Nao foi possivel ler o print da GamersClub. ${detail}`.trim(),
+    };
   }
 
   const payload = await response.json();
+  const ocrError = Array.isArray(payload?.ErrorMessage)
+    ? payload?.ErrorMessage?.[0]
+    : payload?.ErrorMessage;
+  if (payload?.IsErroredOnProcessing || ocrError) {
+    return {
+      error: `OCR: ${ocrError || 'Falha ao processar a imagem.'}`.trim(),
+    };
+  }
   const parsedText =
     payload?.ParsedResults?.[0]?.ParsedText ?? '';
   if (!parsedText) {
@@ -194,8 +205,11 @@ Deno.serve(async (req) => {
   }
 
   if (Object.keys(updates).length === 0) {
+    const sourceLabel = imageUrl || imageBase64 ? 'imagem' : 'perfil';
     return new Response(
-      JSON.stringify({ error: 'Nao foi possivel extrair os stats da imagem.' }),
+      JSON.stringify({
+        error: `Nao foi possivel extrair os stats do ${sourceLabel}.`,
+      }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
