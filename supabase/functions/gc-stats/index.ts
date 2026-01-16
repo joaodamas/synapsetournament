@@ -34,8 +34,18 @@ const extractMetric = (text: string, labels: string[]) => {
 
 const parseStatsFromText = (text: string) => {
   const normalized = text.replace(/\s+/g, ' ');
-  const kd = extractMetric(normalized, ['KDR', 'K/D', 'KD\\s*RATIO', 'KD']);
-  const adr = extractMetric(normalized, ['ADR', 'MEDIA ADR', 'AVG ADR']);
+  const kd = extractMetric(normalized, [
+    'KDR',
+    'K\\s*/\\s*D',
+    'K\\s*D\\s*RATIO',
+    'KD\\s*RATIO',
+    'KD',
+  ]);
+  const adr = extractMetric(normalized, [
+    'ADR',
+    'MEDIA\\s*ADR',
+    'AVG\\s*ADR',
+  ]);
   const winrate = extractMetric(normalized, [
     'WINRATE',
     'WIN\\s*RATE',
@@ -65,8 +75,11 @@ const parseStatsFromOcr = async (imageUrl?: string, imageBase64?: string) => {
 
   const form = new FormData();
   form.append('apikey', ocrApiKey);
-  form.append('language', 'por');
+  form.append('language', 'eng');
   form.append('detectOrientation', 'true');
+  form.append('OCREngine', '2');
+  form.append('scale', 'true');
+  form.append('isTable', 'true');
   if (imageUrl) {
     form.append('url', imageUrl);
   }
@@ -167,24 +180,15 @@ Deno.serve(async (req) => {
     }
     stats = ocr.data;
   } else if (gcProfileUrl) {
-    const response = await fetch(gcProfileUrl, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SynapseCS/1.0',
-      },
-    });
-
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: 'Nao foi possivel acessar o perfil GC.' }), {
-        status: 500,
+    return new Response(
+      JSON.stringify({
+        error:
+          'A GamersClub nao expoe stats no HTML. Use o print para importar.',
+      }),
+      {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const html = await response.text();
-    stats = parseStatsFromHtml(html);
-    warnings.push(
-      'Perfil GC nao expoe stats publicamente; use o print se faltar algum dado.',
+      },
     );
   } else {
     return new Response(JSON.stringify({ error: 'Envie a imagem ou o link do perfil.' }), {

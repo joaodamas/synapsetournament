@@ -1115,6 +1115,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
                         Upload do print
                       </p>
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-slate-500">
+                        Prefira PNG, recorte so os cards (KDR/ADR/Winrate) e use zoom 125%+.
+                      </p>
                       <input
                         type="file"
                         accept="image/*"
