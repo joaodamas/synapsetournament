@@ -18,6 +18,47 @@ const normalizeNumber = (value: string) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const inferStatsFromNumbers = (text: string) => {
+  const matches = Array.from(
+    text.matchAll(/([0-9]{1,3}(?:[.,][0-9]{1,3})?)\s*%?/g),
+  );
+
+  const percentMatches = Array.from(
+    text.matchAll(/([0-9]{1,3}(?:[.,][0-9]{1,3})?)\s*%/g),
+  ).map((match) => ({
+    value: normalizeNumber(match[1]),
+    index: match.index ?? 0,
+  }));
+
+  const numbers = matches
+    .map((match) => ({
+      value: normalizeNumber(match[1]),
+      index: match.index ?? 0,
+    }))
+    .filter((entry): entry is { value: number; index: number } =>
+      typeof entry.value === 'number',
+    );
+
+  const winrate =
+    percentMatches.find(
+      (entry) => entry.value !== null && entry.value <= 100,
+    )?.value ?? null;
+
+  const kdCandidate = numbers.find(
+    (entry) => entry.value >= 0.4 && entry.value <= 3.5,
+  )?.value;
+
+  const adrCandidate = numbers.find(
+    (entry) => entry.value >= 40 && entry.value <= 200,
+  )?.value;
+
+  return {
+    kd: kdCandidate ?? null,
+    adr: adrCandidate ?? null,
+    winrate,
+  };
+};
+
 const extractMetric = (text: string, labels: string[]) => {
   for (const label of labels) {
     const regex = new RegExp(`${label}\\s*[:=]?\\s*([0-9]+[\\.,]?[0-9]*)`, 'i');
@@ -53,7 +94,13 @@ const parseStatsFromText = (text: string) => {
     'WR',
   ]);
 
-  return { kd, adr, winrate };
+  const inferred = inferStatsFromNumbers(normalized);
+
+  return {
+    kd: kd ?? inferred.kd,
+    adr: adr ?? inferred.adr,
+    winrate: winrate ?? inferred.winrate,
+  };
 };
 
 const parseStatsFromHtml = (html: string) => {
@@ -212,7 +259,7 @@ Deno.serve(async (req) => {
     const sourceLabel = imageUrl || imageBase64 ? 'imagem' : 'perfil';
     return new Response(
       JSON.stringify({
-        error: `Nao foi possivel extrair os stats do ${sourceLabel}.`,
+        error: `Nao foi possivel extrair os stats do ${sourceLabel}. Use um recorte dos cards KDR/ADR/Winrate.`,
       }),
       {
         status: 400,
