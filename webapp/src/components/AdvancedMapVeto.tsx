@@ -23,25 +23,25 @@ export const AdvancedMapVeto = ({
 
   return (
     <div className="w-full">
-      <div className="mb-8 flex items-center justify-between rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-md">
+      <div className="mb-6 flex items-center justify-between rounded-sm border border-white/5 bg-[#0f1115] p-6 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div
-            className={`rounded-2xl p-3 shadow-lg ${
+            className={`rounded-sm border p-3 ${
               isTurnA
-                ? 'bg-orange-500 shadow-orange-200'
-                : 'bg-blue-600 shadow-blue-200'
+                ? 'border-[#ff3e3e]/40 bg-[#ff3e3e]/10 text-[#ff8a8a]'
+                : 'border-[#00f2ff]/40 bg-[#00f2ff]/10 text-[#7ff7ff]'
             }`}
           >
-            <MapIcon className="text-white" size={24} />
+            <MapIcon size={22} />
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight text-slate-800">
+            <h2 className="text-xl font-black tracking-tight text-slate-100">
               Veto de mapas
             </h2>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-slate-500">
               Turno:{' '}
               <span
-                className={isTurnA ? 'text-orange-500' : 'text-blue-600'}
+                className={isTurnA ? 'text-[#ff3e3e]' : 'text-[#00f2ff]'}
               >
                 {isTurnA ? 'Capitao Time A' : 'Capitao Time B'}
               </span>
@@ -50,15 +50,15 @@ export const AdvancedMapVeto = ({
         </div>
 
         {vetoLocked ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-[10px] font-black uppercase text-slate-400">
+          <div className="rounded-sm border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase text-slate-500">
             Veto encerrado
           </div>
         ) : myTurn ? (
-          <div className="animate-pulse rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-[10px] font-black uppercase text-emerald-600">
+          <div className="animate-pulse rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-4 py-2 text-[10px] font-black uppercase text-[#7ff7ff]">
             Sua vez de banir
           </div>
         ) : (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-[10px] font-black uppercase text-slate-400">
+          <div className="rounded-sm border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase text-slate-500">
             Aguardando oponente...
           </div>
         )}
@@ -72,10 +72,10 @@ export const AdvancedMapVeto = ({
           return (
             <div
               key={map.id}
-              className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+              className={`group relative overflow-hidden rounded-sm border transition-all duration-300 ${
                 isBanned
-                  ? 'border-slate-100 opacity-40 grayscale'
-                  : 'border-white shadow-lg hover:-translate-y-1 hover:border-blue-500'
+                  ? 'border-[#ff3e3e] border-b-4 opacity-50 grayscale'
+                  : 'border-white/10 border-b-4 border-b-[#00f2ff] hover:-translate-y-1 hover:border-[#00f2ff]/60'
               }`}
             >
               <img
@@ -83,7 +83,7 @@ export const AdvancedMapVeto = ({
                 className="aspect-video w-full object-cover"
                 alt={map.name}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
 
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="flex items-center justify-between">
@@ -91,8 +91,8 @@ export const AdvancedMapVeto = ({
                     <h3 className="text-sm font-black uppercase italic tracking-tight text-white">
                       {map.name}
                     </h3>
-                    <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-300">
-                      {isBanned ? 'Banido' : 'Disponivel'}
+                    <span className="text-[9px] font-mono uppercase tracking-[0.3em] text-slate-400">
+                      {isBanned ? 'Eliminado' : 'Ativo'}
                     </span>
                   </div>
 
@@ -100,7 +100,7 @@ export const AdvancedMapVeto = ({
                     <button
                       type="button"
                       onClick={() => onBan(map.id)}
-                      className="rounded-xl border border-red-500/30 bg-red-500/20 px-2.5 py-2 text-red-500 backdrop-blur-md transition-all group-hover:scale-105 group-hover:bg-red-500 group-hover:text-white"
+                      className="rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/20 px-2.5 py-2 text-[#ff3e3e] backdrop-blur-md transition-all group-hover:scale-105 group-hover:bg-[#ff3e3e] group-hover:text-white"
                     >
                       <span className="mr-1 text-[9px] font-black uppercase">
                         Banir
@@ -112,8 +112,8 @@ export const AdvancedMapVeto = ({
               </div>
 
               {isBanned && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60">
-                  <div className="rounded-full border-2 border-red-500 px-4 py-1 text-xs font-black uppercase text-red-500">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#050505]/70">
+                  <div className="rounded-sm border border-[#ff3e3e] px-4 py-1 text-xs font-black uppercase text-[#ff3e3e]">
                     Fora do mix
                   </div>
                 </div>

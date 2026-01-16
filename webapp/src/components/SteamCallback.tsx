@@ -95,20 +95,20 @@ export const SteamCallback = () => {
   return (
     <div className="page-shell">
       <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 text-center">
-        <div className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-soft">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-600">
+        <div className="rounded-sm border border-white/10 bg-[#0f1115] p-8">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#00f2ff]">
             Steam Login
           </p>
-          <h1 className="mt-4 font-display text-2xl font-semibold text-slate-900">
+          <h1 className="mt-4 font-display text-2xl font-semibold text-slate-100">
             {state === 'loading'
               ? 'Sincronizando perfil'
               : 'Nao foi possivel entrar'}
           </h1>
-          <p className="mt-3 text-sm text-slate-500">{message}</p>
+          <p className="mt-3 text-sm text-slate-400">{message}</p>
           {state === 'error' && (
             <a
               href="/"
-              className="mt-6 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+              className="mt-6 inline-flex items-center justify-center rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95"
             >
               Voltar para o lobby
             </a>

@@ -177,7 +177,7 @@ const AuthenticatedApp = ({ mixId, playerId, onLogout }: AuthenticatedAppProps) 
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-[#050505] text-slate-200">
       <Sidebar
         activeTab={activeTab}
         isOpen={sidebarOpen}
@@ -188,27 +188,29 @@ const AuthenticatedApp = ({ mixId, playerId, onLogout }: AuthenticatedAppProps) 
       />
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-100 bg-white/80 px-6 py-4 backdrop-blur md:hidden">
+        <header className="flex items-center justify-between border-b border-white/5 bg-[#0b0f14]/95 px-6 py-4 backdrop-blur md:hidden">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black uppercase tracking-[0.3em] text-slate-600"
+            className="rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300"
           >
             Menu
           </button>
-          <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
             Synapse
           </span>
           <button
             type="button"
             onClick={onLogout}
-            className="text-xs font-black uppercase tracking-[0.3em] text-red-400"
+            className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff3e3e]"
           >
             Sair
           </button>
         </header>
 
-        <main className="flex-1 px-6 py-8 md:px-10 md:py-10">{content}</main>
+        <main className="flex-1 px-6 py-8 md:px-10 md:py-10">
+          {content}
+        </main>
       </div>
     </div>
   );

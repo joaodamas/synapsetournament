@@ -37,17 +37,17 @@ const PodiumCard = ({
   if (!player) {
     return (
       <div
-        className={`rounded-3xl border border-slate-100 bg-white/80 p-6 shadow-xl ${
+        className={`rounded-sm border border-white/10 bg-[#0f1115] p-6 ${
           isMain ? 'pb-12' : 'pb-8'
         }`}
       >
         <div className="flex flex-col items-center gap-4 text-center">
           <div
-            className={`rounded-full border-4 ${colorClass} ${
+            className={`rounded-sm border-4 ${colorClass} ${
               isMain ? 'h-28 w-28' : 'h-20 w-20'
-            } bg-slate-100`}
+            } bg-[#0b0f14]`}
           />
-          <p className="text-sm font-semibold text-slate-400">
+          <p className="text-sm font-semibold text-slate-500">
             Aguardando jogador
           </p>
         </div>
@@ -68,7 +68,7 @@ const PodiumCard = ({
 
   return (
     <div
-      className={`rounded-3xl border-b-8 ${colorClass} bg-white p-6 shadow-2xl transition-transform hover:scale-[1.02] ${
+      className={`rounded-sm border border-white/10 ${colorClass} bg-[#0f1115] p-6 transition-transform hover:-translate-y-0.5 ${
         isMain ? 'pb-12' : 'pb-8'
       }`}
     >
@@ -78,40 +78,40 @@ const PodiumCard = ({
             <img
               src={player.avatar_url}
               alt={player.nickname}
-              className={`rounded-full border-4 ${colorClass} ${
+              className={`rounded-sm border-4 ${colorClass} ${
                 isMain ? 'h-32 w-32' : 'h-24 w-24'
               } object-cover`}
             />
           ) : (
             <div
-              className={`flex items-center justify-center rounded-full border-4 ${colorClass} ${
+              className={`flex items-center justify-center rounded-sm border-4 ${colorClass} ${
                 isMain ? 'h-32 w-32' : 'h-24 w-24'
-              } bg-slate-100 text-xl font-bold text-slate-500`}
+              } bg-[#0b0f14] text-xl font-bold text-slate-500`}
             >
               {initials}
             </div>
           )}
-          <div className="absolute -right-4 -top-4 rounded-full bg-white p-2 shadow-lg">
+          <div className="absolute -right-4 -top-4 rounded-sm border border-white/10 bg-[#0b0f14] p-2">
             {badge}
           </div>
         </div>
         <h3
-          className={`font-black text-slate-900 ${
+          className={`font-black text-slate-100 ${
             isMain ? 'text-2xl' : 'text-lg'
           }`}
         >
           {player.nickname}
         </h3>
-        <p className="mb-4 text-sm font-bold text-blue-600">
+        <p className="mb-4 text-sm font-bold text-[#00f2ff]">
           {player.elo_interno} pts
         </p>
         <div className="flex gap-2">
           <span className={getFaceitLevelBadgeClass(player.faceit_level, 'sm')}>
-            <FaceitLogo className="h-3 w-3 text-orange-500" />
+            <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
             FACEIT {player.faceit_level}
           </span>
           <span className={getGcLevelBadgeClass(player.gc_level, 'sm')}>
-            <GamersClubLogo className="h-3 w-3 text-blue-600" />
+            <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
             GC {player.gc_level}
           </span>
         </div>
@@ -161,28 +161,28 @@ export const GlobalLeaderboard = () => {
     <div className="page-shell">
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-12">
         <header className="text-center">
-          <div className="inline-flex items-center gap-3 rounded-full border border-blue-100 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 shadow-soft">
+          <div className="inline-flex items-center gap-3 rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#7ff7ff]">
             Leaderboard
             <Trophy size={18} />
           </div>
-          <h1 className="mt-5 font-display text-4xl font-black text-slate-900">
+          <h1 className="mt-5 font-display text-4xl font-black text-slate-100">
             Global Ranking CS2
           </h1>
-          <p className="mt-3 text-slate-500">
+          <p className="mt-3 text-slate-400">
             Os melhores jogadores da temporada, com o pool mais competitivo.
           </p>
         </header>
 
         {error ? (
-          <div className="rounded-3xl border border-orange-200 bg-orange-50 px-6 py-4 text-sm text-orange-700">
+          <div className="rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-6 py-4 text-sm text-[#ff8a8a]">
             {error}
           </div>
         ) : loading ? (
-          <div className="rounded-3xl border border-slate-200 bg-white/80 px-6 py-10 text-center text-sm text-slate-500">
+          <div className="rounded-sm border border-white/10 bg-white/5 px-6 py-10 text-center text-sm text-slate-400">
             Carregando ranking...
           </div>
         ) : players.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white/80 px-6 py-10 text-center text-sm text-slate-500">
+          <div className="rounded-sm border border-white/10 bg-white/5 px-6 py-10 text-center text-sm text-slate-400">
             Nenhum jogador ranqueado ainda.
           </div>
         ) : (
@@ -204,37 +204,37 @@ export const GlobalLeaderboard = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-100 bg-white shadow-xl">
-              <div className="border-b border-slate-100 bg-slate-50/70 px-8 py-5">
-                <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-slate-400">
+            <section className="rounded-sm border border-white/10 bg-[#0f1115]">
+              <div className="border-b border-white/10 bg-white/5 px-8 py-5">
+                <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-slate-500">
                   Ranking completo
                 </h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b border-slate-100">
+                  <thead className="border-b border-white/10 bg-white/5">
                     <tr>
-                      <th className="px-8 py-4 text-xs font-bold uppercase text-slate-400">
+                      <th className="px-8 py-4 text-xs font-bold uppercase text-slate-500">
                         Pos
                       </th>
-                      <th className="px-8 py-4 text-xs font-bold uppercase text-slate-400">
+                      <th className="px-8 py-4 text-xs font-bold uppercase text-slate-500">
                         Jogador
                       </th>
-                      <th className="px-8 py-4 text-center text-xs font-bold uppercase text-slate-400">
+                      <th className="px-8 py-4 text-center text-xs font-bold uppercase text-slate-500">
                         Faceit/GC
                       </th>
-                      <th className="px-8 py-4 text-right text-xs font-bold uppercase text-slate-400">
+                      <th className="px-8 py-4 text-right text-xs font-bold uppercase text-slate-500">
                         Elo
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-white/10">
                     {others.map((player) => (
                       <tr
                         key={player.player_id}
-                        className="group transition-colors hover:bg-blue-50/30"
+                        className="group transition-colors hover:bg-white/5"
                       >
-                        <td className="px-8 py-5 font-bold text-slate-400 group-hover:text-blue-600">
+                        <td className="px-8 py-5 font-bold text-slate-500 group-hover:text-[#00f2ff]">
                           #{player.posicao}
                         </td>
                         <td className="px-8 py-5">
@@ -243,14 +243,14 @@ export const GlobalLeaderboard = () => {
                               <img
                                 src={player.avatar_url}
                                 alt={player.nickname}
-                                className="h-10 w-10 rounded-full object-cover grayscale transition group-hover:grayscale-0"
+                                className="h-10 w-10 rounded-sm object-cover grayscale transition group-hover:grayscale-0"
                               />
                             ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-sm border border-white/10 bg-[#0b0f14] text-xs font-semibold text-slate-500">
                                 {player.nickname.slice(0, 2).toUpperCase()}
                               </div>
                             )}
-                            <span className="font-bold text-slate-700">
+                            <span className="font-bold text-slate-200">
                               {player.nickname}
                             </span>
                           </div>
@@ -263,7 +263,7 @@ export const GlobalLeaderboard = () => {
                                 'sm',
                               )}
                             >
-                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
                               FACEIT {player.faceit_level}
                             </span>
                             <span
@@ -272,12 +272,12 @@ export const GlobalLeaderboard = () => {
                                 'sm',
                               )}
                             >
-                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
+                              <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
                               GC {player.gc_level}
                             </span>
                           </div>
                         </td>
-                        <td className="px-8 py-5 text-right font-black text-slate-900">
+                        <td className="px-8 py-5 text-right font-black text-slate-100">
                           {player.elo_interno}
                         </td>
                       </tr>

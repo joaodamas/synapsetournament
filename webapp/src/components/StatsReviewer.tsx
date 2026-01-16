@@ -51,23 +51,23 @@ export const StatsReviewer = ({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 p-6">
+    <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-sm border border-white/10 bg-[#0f1115]">
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-6">
         <div>
-          <h2 className="text-xl font-black text-slate-900">
+          <h2 className="text-xl font-black text-slate-100">
             Revisao de performance
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             Confirme os dados extraidos do print da GamersClub.
           </p>
         </div>
-        <AlertCircle className="text-blue-500" />
+        <AlertCircle className="text-[#00f2ff]" />
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-slate-100/50 text-[10px] uppercase tracking-[0.3em] text-slate-400">
+            <tr className="bg-white/5 text-[10px] uppercase tracking-[0.3em] text-slate-500">
               <th className="px-6 py-3">Jogador</th>
               <th className="px-6 py-3">K</th>
               <th className="px-6 py-3">A</th>
@@ -76,15 +76,15 @@ export const StatsReviewer = ({
               <th className="px-6 py-3">KDR</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-white/10">
             {stats.map((row, index) => (
               <tr
                 key={`${row.nickname}-${index}`}
-                className="transition-colors hover:bg-blue-50/50"
+                className="transition-colors hover:bg-white/5"
               >
                 <td className="px-4 py-2">
                   <input
-                    className="w-full border-none bg-transparent font-bold text-slate-700 focus:ring-0"
+                    className="w-full border-none bg-transparent font-bold text-slate-100 focus:ring-0"
                     value={row.nickname}
                     onChange={(event) =>
                       handleChange(index, 'nickname', event.target.value)
@@ -94,7 +94,7 @@ export const StatsReviewer = ({
                 <td className="px-4 py-2">
                   <input
                     type="number"
-                    className="w-12 rounded border border-slate-200 bg-slate-50 p-1 text-center text-sm"
+                    className="w-12 rounded-sm border border-white/10 bg-[#0b0f14] p-1 text-center text-sm text-slate-100"
                     value={row.kills}
                     onChange={(event) =>
                       handleChange(index, 'kills', event.target.value)
@@ -104,7 +104,7 @@ export const StatsReviewer = ({
                 <td className="px-4 py-2">
                   <input
                     type="number"
-                    className="w-12 rounded border border-slate-200 bg-slate-50 p-1 text-center text-sm"
+                    className="w-12 rounded-sm border border-white/10 bg-[#0b0f14] p-1 text-center text-sm text-slate-100"
                     value={row.assists}
                     onChange={(event) =>
                       handleChange(index, 'assists', event.target.value)
@@ -114,7 +114,7 @@ export const StatsReviewer = ({
                 <td className="px-4 py-2">
                   <input
                     type="number"
-                    className="w-12 rounded border border-slate-200 bg-slate-50 p-1 text-center text-sm"
+                    className="w-12 rounded-sm border border-white/10 bg-[#0b0f14] p-1 text-center text-sm text-slate-100"
                     value={row.deaths}
                     onChange={(event) =>
                       handleChange(index, 'deaths', event.target.value)
@@ -125,7 +125,7 @@ export const StatsReviewer = ({
                   <input
                     type="number"
                     step="0.1"
-                    className="w-16 rounded border border-slate-200 bg-slate-50 p-1 text-center text-sm"
+                    className="w-16 rounded-sm border border-white/10 bg-[#0b0f14] p-1 text-center text-sm text-slate-100"
                     value={row.adr}
                     onChange={(event) =>
                       handleChange(index, 'adr', event.target.value)
@@ -136,7 +136,7 @@ export const StatsReviewer = ({
                   <input
                     type="number"
                     step="0.1"
-                    className="w-16 rounded border border-slate-200 bg-slate-50 p-1 text-center text-sm"
+                    className="w-16 rounded-sm border border-white/10 bg-[#0b0f14] p-1 text-center text-sm text-slate-100"
                     value={row.kdr}
                     onChange={(event) =>
                       handleChange(index, 'kdr', event.target.value)
@@ -149,11 +149,11 @@ export const StatsReviewer = ({
         </table>
       </div>
 
-      <div className="flex justify-end border-t border-slate-100 bg-slate-50 p-6">
+      <div className="flex justify-end border-t border-white/10 bg-white/5 p-6">
         <button
           type="button"
           onClick={() => onConfirm(stats)}
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95"
+          className="flex items-center gap-2 rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-8 py-3 font-bold text-[#050505] transition-all hover:brightness-95 active:scale-[0.98]"
         >
           <Save size={18} /> Salvar resultados e atualizar ranking
         </button>

@@ -137,10 +137,10 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
     const content = (
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <header className="text-center">
-          <h1 className="text-3xl font-black italic tracking-tight text-slate-900 md:text-4xl">
+          <h1 className="text-3xl font-black italic tracking-tight text-slate-100 md:text-4xl">
             Central de mix
           </h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">
+          <p className="mt-2 text-sm font-medium text-slate-400">
             Crie uma sala ou entre com um codigo existente.
           </p>
         </header>
@@ -587,24 +587,24 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
   return (
     <div className={embedded ? 'flex flex-col gap-6' : 'page-shell'}>
       {!embedded && (
-        <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 px-6 py-4 backdrop-blur">
+        <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0b0f14]/95 px-6 py-4 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
             <Logo variant="dark" onClick={() => window.location.assign('/')} />
             <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2">
-                <p className="text-[10px] font-bold uppercase text-slate-500">
+              <div className="rounded-sm border border-white/10 bg-[#0f1115] px-4 py-2">
+                <p className="text-[10px] font-mono uppercase text-slate-500">
                   Status
                 </p>
-                <p className="text-xs font-black uppercase text-emerald-400">
+                <p className="text-xs font-black uppercase text-[#00f2ff]">
                   {mixStatus} ({filledSlots}/10)
                 </p>
               </div>
               {finalMap && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2">
-                  <p className="text-[10px] font-bold uppercase text-slate-500">
+                <div className="rounded-sm border border-white/10 bg-[#0f1115] px-4 py-2">
+                  <p className="text-[10px] font-mono uppercase text-slate-500">
                     Mapa
                   </p>
-                  <p className="text-xs font-black uppercase text-blue-300">
+                  <p className="text-xs font-black uppercase text-[#7ff7ff]">
                     {finalMap.replace('de_', '')}
                   </p>
                 </div>
@@ -620,34 +620,34 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
             : 'mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10'
         }
       >
-        <header className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-soft backdrop-blur">
+        <header className="hud-reveal flex flex-col gap-4 rounded-sm border border-white/5 bg-[#0f1115] p-6 backdrop-blur">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-600">
+              <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#00f2ff]">
                 SynapseCS Mix Lab
               </p>
-              <h1 className="mt-2 font-display text-3xl font-semibold text-slate-900">
+              <h1 className="mt-2 font-display text-3xl font-semibold text-slate-100">
                 CS2 Mix Lobby
               </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-400">
                 Aguardando jogadores ({filledSlots}/10)
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {playerId ? (
-                <div className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                <div className="inline-flex items-center gap-3 rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300">
                   <div className="flex flex-col">
-                    <span className="uppercase tracking-[0.2em] text-slate-400">
+                    <span className="uppercase tracking-[0.2em] text-slate-500">
                       Steam OK
                     </span>
-                    <span className="font-mono text-[11px] text-slate-700">
+                    <span className="font-mono text-[11px] text-slate-200">
                       {playerNickname ?? steamId ?? 'Steam conectado'}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-100"
+                    className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/10 px-2 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-white/20"
                   >
                     <LogOut size={14} />
                     Sair
@@ -657,7 +657,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 <button
                   type="button"
                   onClick={loginWithSteam}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/20"
                 >
                   <LogIn size={16} />
                   Login Steam
@@ -666,7 +666,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300 transition hover:bg-white/10"
               >
                 <LinkIcon size={18} />
                 {copyState}
@@ -676,7 +676,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   type="button"
                   onClick={handleLeaveMix}
                   disabled={leavingMix}
-                  className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff8a8a] transition hover:bg-[#ff3e3e]/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <LogOut size={16} />
                   {leavingMix ? 'Saindo...' : 'Sair do mix'}
@@ -684,30 +684,30 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
               )}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+            <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-3 py-1">
               <Users size={16} />
               Mix ID:{' '}
-              <span className="font-mono text-slate-700">
+              <span className="font-mono text-slate-200">
                 {mixId || 'nao definido'}
               </span>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
+            <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-3 py-1">
               Status:{' '}
-              <span className="font-mono text-slate-700">{mixStatus}</span>
+              <span className="font-mono text-slate-200">{mixStatus}</span>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-orange-700">
+            <div className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-3 py-1 text-slate-300">
               <Trophy size={16} />
               Balanceamento por nivel Faceit + GC
             </div>
           </div>
           {status && (
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+            <div className="rounded-sm border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
               {status}
             </div>
           )}
           {!hasSupabaseConfig && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            <div className="rounded-sm border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-400">
               Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para ativar o
               realtime.
             </div>
@@ -725,28 +725,29 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
               type="button"
               onClick={handleBalance}
               disabled={!canBalance}
-              className="w-full rounded-2xl bg-slate-900 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-soft transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="w-full rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] py-4 text-[11px] font-black uppercase tracking-[0.3em] text-[#050505] shadow-[0_0_24px_rgba(0,242,255,0.3)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
             >
               Sortear times e gerar mix
             </button>
           </div>
 
           <aside className="flex flex-col gap-4">
-            <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-soft">
-              <h3 className="font-display text-lg font-semibold text-slate-900">
+            <div className="hud-reveal hud-reveal-delay-1 rounded-sm border border-white/5 bg-[#0f1115] p-6">
+              <h3 className="font-display text-lg font-semibold text-slate-100">
                 Mix Status
               </h3>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-slate-400">
                 {balanceHint}
               </p>
-              <div className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
-                Status atual: <span className="font-mono">{mixStatus}</span>
+              <div className="mt-3 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Status atual:{' '}
+                <span className="font-mono text-slate-200">{mixStatus}</span>
               </div>
               <button
                 type="button"
                 onClick={handleBalance}
                 disabled={!canBalance}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Trophy size={18} />
                 Sortear agora
@@ -755,28 +756,28 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 type="button"
                 onClick={() => setShowFinalize(true)}
                 disabled={!canFinalize}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
               >
                 Finalizar partida
               </button>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-soft">
-              <h3 className="font-display text-lg font-semibold text-slate-900">
+            <div className="hud-reveal hud-reveal-delay-2 rounded-sm border border-white/5 bg-[#0f1115] p-6">
+              <h3 className="font-display text-lg font-semibold text-slate-100">
                 Times balanceados
               </h3>
               {balanced ? (
                 <div className="mt-4 grid gap-4">
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="rounded-sm border border-[#00f2ff]/30 bg-[#00f2ff]/5 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-emerald-900">
+                      <p className="text-sm font-semibold text-slate-100">
                         Time A
                       </p>
-                      <span className="text-xs text-emerald-700">
+                      <span className="text-xs text-slate-400">
                         Media {averageA}
                       </span>
                     </div>
-                    <ul className="mt-3 space-y-2 text-sm text-emerald-900">
+                    <ul className="mt-3 space-y-2 text-sm text-slate-200">
                       {balanced.teamA.map((player) => (
                         <li key={player.id} className="flex justify-between">
                           <span>{player.nickname}</span>
@@ -787,7 +788,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
+                              <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
                               GC {player.gc_level}
                             </span>
                             <span
@@ -796,7 +797,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
                               FACEIT {player.faceit_level}
                             </span>
                           </div>
@@ -804,16 +805,16 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                       ))}
                     </ul>
                   </div>
-                  <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                  <div className="rounded-sm border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-blue-900">
+                      <p className="text-sm font-semibold text-slate-100">
                         Time B
                       </p>
-                      <span className="text-xs text-blue-700">
+                      <span className="text-xs text-slate-400">
                         Media {averageB}
                       </span>
                     </div>
-                    <ul className="mt-3 space-y-2 text-sm text-blue-900">
+                    <ul className="mt-3 space-y-2 text-sm text-slate-200">
                       {balanced.teamB.map((player) => (
                         <li key={player.id} className="flex justify-between">
                           <span>{player.nickname}</span>
@@ -824,7 +825,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              <GamersClubLogo className="h-3 w-3 text-blue-600" />
+                              <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
                               GC {player.gc_level}
                             </span>
                             <span
@@ -833,7 +834,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                                 'sm',
                               )}
                             >
-                              <FaceitLogo className="h-3 w-3 text-orange-500" />
+                              <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
                               FACEIT {player.faceit_level}
                             </span>
                           </div>
@@ -843,7 +844,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   </div>
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">
+                <p className="mt-3 text-sm text-slate-400">
                   Times ainda nao sorteados. Aguarde os 10 jogadores.
                 </p>
               )}
@@ -863,16 +864,16 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
 
           <aside className="flex flex-col gap-4">
             {mixStatus === 'live' && finalMap ? (
-              <div className="rounded-3xl border-4 border-blue-500 bg-slate-900 p-6 text-white shadow-soft">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-300">
+              <div className="rounded-sm border-4 border-[#00f2ff] bg-[#0b0f14] p-6 text-slate-100">
+                <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-[#7ff7ff]">
                   Partida iniciada
                 </p>
                 <h3 className="mt-3 text-2xl font-black italic text-white">
                   MAPA:{' '}
                   {MAP_POOL.find((map) => map.id === finalMap)?.name ?? '---'}
                 </h3>
-                <div className="mt-5 flex items-center justify-between rounded-2xl border border-slate-700 bg-slate-800 px-4 py-3">
-                  <code className="text-emerald-300">
+                <div className="mt-5 flex items-center justify-between rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3">
+                  <code className="text-[#00f2ff]">
                     connect {serverIp || 'defina o IP'}
                   </code>
                   <button
@@ -886,7 +887,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                       );
                     }}
                     disabled={!serverIp}
-                    className="rounded-lg border border-slate-700 bg-slate-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-sm border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Copiar IP
                   </button>
@@ -894,18 +895,18 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 {serverIp ? (
                   <a
                     href={`steam://connect/${serverIp}`}
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-600 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-blue-700"
+                    className="mt-4 inline-flex w-full items-center justify-center rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95"
                   >
                     Abrir jogo agora
                   </a>
                 ) : (
-                  <p className="mt-4 text-sm text-blue-200">
+                  <p className="mt-4 text-sm text-slate-400">
                     Defina o IP do servidor para liberar o acesso direto.
                   </p>
                 )}
                 {isCreator && (
                   <div className="mt-5 flex flex-col gap-2">
-                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200">
+                    <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
                       Server IP
                     </label>
                     <div className="flex gap-2">
@@ -915,13 +916,13 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                           setServerIpDraft(event.target.value)
                         }
                         placeholder="123.456.789.000:27015"
-                        className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                        className="flex-1 rounded-sm border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
                       />
                       <button
                         type="button"
                         onClick={handleSaveServerIp}
                         disabled={savingServerIp}
-                        className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                        className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
                       >
                         {savingServerIp ? 'Salvando' : 'Salvar'}
                       </button>
@@ -930,16 +931,16 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 )}
               </div>
             ) : (
-              <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-soft">
-                <h3 className="font-display text-lg font-semibold text-slate-900">
+              <div className="rounded-sm border border-white/5 bg-[#0f1115] p-6">
+                <h3 className="font-display text-lg font-semibold text-slate-100">
                   Status do veto
                 </h3>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-slate-400">
                   {isVetoLocked || finalMap
                     ? 'Veto encerrado.'
                     : `Faltam ${remainingMaps.length} mapas para definir.`}
                 </p>
-                <div className="mt-4 flex flex-col gap-2 text-sm text-slate-600">
+                <div className="mt-4 flex flex-col gap-2 text-sm text-slate-300">
                   <span>
                     Banidos: <strong>{bannedMaps.length}</strong>
                   </span>
@@ -948,27 +949,27 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   </span>
                 </div>
                 <div className="mt-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
                     Ultimos mapas
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {remainingMaps.slice(0, 3).map((map) => (
                       <span
                         key={map.id}
-                        className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
+                        className="rounded-sm border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300"
                       >
                         {map.name}
                       </span>
                     ))}
                     {remainingMaps.length === 0 && (
-                      <span className="text-sm text-slate-400">
+                      <span className="text-sm text-slate-500">
                         Aguardando definicao final.
                       </span>
                     )}
                   </div>
                 </div>
                 {!playerId && (
-                  <p className="mt-4 text-xs text-slate-400">
+                  <p className="mt-4 text-xs text-slate-500">
                     Faca login para participar do veto.
                   </p>
                 )}
@@ -980,17 +981,17 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
       </div>
 
       {showFinalize && balanced && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-6">
-          <div className="w-full max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+          <div className="w-full max-w-3xl rounded-sm border border-white/10 bg-[#0f1115] p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+                <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500">
                   Finalizar partida
                 </p>
-                <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900">
+                <h2 className="mt-2 font-display text-2xl font-semibold text-slate-100">
                   Selecione o vencedor do mix
                 </h2>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-slate-400">
                   O elo sera incrementado em 25 pontos para cada jogador do time
                   vencedor.
                 </p>
@@ -1001,7 +1002,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   setShowFinalize(false);
                   setWinnerChoice(null);
                 }}
-                className="rounded-full border border-slate-200 bg-slate-50 p-2 text-slate-500 transition hover:bg-slate-100"
+                className="rounded-sm border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:bg-white/10"
               >
                 <X size={18} />
               </button>
@@ -1012,16 +1013,16 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 type="button"
                 onClick={() => setWinnerChoice('A')}
                 className={clsx(
-                  'rounded-2xl border px-4 py-4 text-left transition',
+                  'rounded-sm border px-4 py-4 text-left transition',
                   winnerChoice === 'A'
-                    ? 'border-emerald-400 bg-emerald-50'
-                    : 'border-slate-200 bg-white hover:bg-slate-50',
+                    ? 'border-[#00f2ff] bg-[#00f2ff]/10'
+                    : 'border-white/10 bg-[#0b0f14] hover:bg-white/5',
                 )}
               >
-                <p className="text-sm font-semibold text-emerald-900">
+                <p className="text-sm font-semibold text-slate-100">
                   Time A
                 </p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
                   {balanced.teamA.map((player) => (
                     <li key={player.id} className="flex justify-between">
                       <span>{player.nickname}</span>
@@ -1032,7 +1033,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          <GamersClubLogo className="h-3 w-3 text-blue-600" />
+                          <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
                           GC {player.gc_level}
                         </span>
                         <span
@@ -1041,7 +1042,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          <FaceitLogo className="h-3 w-3 text-orange-500" />
+                          <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
                           FACEIT {player.faceit_level}
                         </span>
                       </div>
@@ -1053,14 +1054,14 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 type="button"
                 onClick={() => setWinnerChoice('B')}
                 className={clsx(
-                  'rounded-2xl border px-4 py-4 text-left transition',
+                  'rounded-sm border px-4 py-4 text-left transition',
                   winnerChoice === 'B'
-                    ? 'border-blue-400 bg-blue-50'
-                    : 'border-slate-200 bg-white hover:bg-slate-50',
+                    ? 'border-[#00f2ff] bg-[#00f2ff]/10'
+                    : 'border-white/10 bg-[#0b0f14] hover:bg-white/5',
                 )}
               >
-                <p className="text-sm font-semibold text-blue-900">Time B</p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                <p className="text-sm font-semibold text-slate-100">Time B</p>
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
                   {balanced.teamB.map((player) => (
                     <li key={player.id} className="flex justify-between">
                       <span>{player.nickname}</span>
@@ -1071,7 +1072,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          <GamersClubLogo className="h-3 w-3 text-blue-600" />
+                          <GamersClubLogo className="h-3 w-3 text-[#00f2ff]" />
                           GC {player.gc_level}
                         </span>
                         <span
@@ -1080,7 +1081,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                             'sm',
                           )}
                         >
-                          <FaceitLogo className="h-3 w-3 text-orange-500" />
+                          <FaceitLogo className="h-3 w-3 text-[#ffb86b]" />
                           FACEIT {player.faceit_level}
                         </span>
                       </div>
@@ -1097,7 +1098,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                   setShowFinalize(false);
                   setWinnerChoice(null);
                 }}
-                className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200"
+                className="rounded-sm border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300 transition hover:bg-white/10"
               >
                 Cancelar
               </button>
@@ -1105,7 +1106,7 @@ export const MixLobby = ({ mixId, embedded = false }: MixLobbyProps) => {
                 type="button"
                 onClick={handleFinalize}
                 disabled={savingResult || !winnerChoice}
-                className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-5 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
               >
                 {savingResult ? 'Processando...' : 'Confirmar vencedor'}
               </button>

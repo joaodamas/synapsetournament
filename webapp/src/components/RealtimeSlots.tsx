@@ -128,13 +128,13 @@ export const RealtimeSlots = ({
   const slots = useMemo(() => Array.from({ length: 10 }), []);
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-soft">
+    <div className="hud-reveal rounded-sm border border-white/5 bg-[#0f1115] p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black italic text-slate-900">
+          <h2 className="text-2xl font-black italic text-slate-100">
             Lobby
           </h2>
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-blue-600">
+          <p className="text-xs font-mono uppercase tracking-[0.3em] text-[#00f2ff]">
             Aguardando jogadores ({participants.length}/10)
           </p>
         </div>
@@ -143,7 +143,7 @@ export const RealtimeSlots = ({
           <button
             type="button"
             onClick={joinMix}
-            className="rounded-2xl bg-blue-600 px-6 py-3 text-xs font-black uppercase tracking-[0.3em] text-white shadow-lg shadow-blue-200 transition-all hover:scale-105 hover:bg-blue-700"
+            className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-6 py-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#050505] shadow-[0_0_20px_rgba(0,242,255,0.35)] transition hover:-translate-y-0.5"
           >
             Entrar no mix
           </button>
@@ -151,74 +151,86 @@ export const RealtimeSlots = ({
       </div>
 
       {status && (
-        <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+        <div className="mt-4 rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-4 py-3 text-xs text-[#ff8a8a]">
           {status}
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {slots.map((_, index) => {
           const player = participants[index];
+          const slotLabel = String(index + 1).padStart(2, '0');
           return (
             <div
               key={index}
-              className={`flex aspect-square flex-col items-center justify-center rounded-[2rem] border-2 p-4 transition-all duration-500 ${
+              className={`group relative flex items-center gap-4 rounded-sm border px-3 py-3 transition-all ${
                 player
-                  ? 'border-blue-500 bg-white shadow-xl shadow-blue-100'
-                  : 'border-dashed border-slate-200 bg-slate-50'
+                  ? 'border-white/10 bg-[#0f1115] hover:border-[#00f2ff]/60'
+                  : 'border-dashed border-white/10 bg-[#0b0e12]'
               }`}
             >
-              {player ? (
-                <>
-                  {player.avatar_url ? (
+              <div className="absolute top-1 right-2 text-[8px] font-mono text-slate-600">
+                SLOT_{slotLabel}
+              </div>
+              <div
+                className={`flex h-12 w-12 items-center justify-center border ${
+                  player
+                    ? 'border-[#00f2ff] bg-[#0b0f14]'
+                    : 'border-white/10 bg-[#0b0f14]'
+                }`}
+              >
+                {player ? (
+                  player.avatar_url ? (
                     <img
                       src={player.avatar_url}
                       alt={player.nickname}
-                      className="mb-2 h-16 w-16 rounded-full border-2 border-blue-500 object-cover shadow-md"
+                      className="h-full w-full object-cover grayscale transition group-hover:grayscale-0"
                     />
                   ) : (
-                    <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-500 bg-blue-50 text-sm font-black text-blue-600">
+                    <span className="text-xs font-black text-[#00f2ff]">
                       {player.nickname.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <p className="w-full truncate text-center text-[11px] font-black uppercase tracking-tight text-slate-900">
-                    {player.nickname}
-                  </p>
-                  <p className="text-[9px] font-bold text-blue-600">
-                    {player.elo_interno ?? 0} PTS
-                  </p>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-2 opacity-30">
-                  <UserPlus size={24} className="text-slate-400" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
-                    Vago
+                    </span>
+                  )
+                ) : (
+                  <UserPlus size={20} className="text-slate-600" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-100">
+                  {player?.nickname || 'WAITING_USER...'}
+                </p>
+                <div className="mt-1 flex gap-4 text-[9px] font-mono uppercase tracking-[0.2em]">
+                  <span className="text-[#00f2ff]">
+                    LEVEL: {player?.gc_level ?? '--'}
+                  </span>
+                  <span className="text-slate-500">
+                    ELO: {player?.elo_interno ?? '0000'}
                   </span>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-10 h-3 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+      <div className="mt-8 h-2 overflow-hidden rounded-sm border border-white/10 bg-[#0b0f14]">
         <div
-          className="h-full bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all duration-1000 ease-out"
+          className="h-full bg-[#00f2ff] shadow-[0_0_16px_rgba(0,242,255,0.4)] transition-all duration-1000 ease-out"
           style={{ width: `${(participants.length / 10) * 100}%` }}
         />
       </div>
 
       {participants.length === 10 && (
-        <div className="mt-8 flex items-center justify-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-emerald-600">
+        <div className="mt-6 flex items-center justify-center gap-3 rounded-sm border border-[#00f2ff]/30 bg-[#00f2ff]/10 p-4 text-[#7ff7ff]">
           <CheckCircle2 size={20} />
-          <span className="text-sm font-black uppercase italic">
+          <span className="text-xs font-black uppercase tracking-[0.2em]">
             Lobby cheio! O sorteio pode comecar.
           </span>
         </div>
       )}
 
       {loading && (
-        <p className="mt-4 text-xs uppercase tracking-[0.3em] text-slate-400">
+        <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-slate-500">
           Atualizando slots...
         </p>
       )}

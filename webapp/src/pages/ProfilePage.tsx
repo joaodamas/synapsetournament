@@ -54,6 +54,36 @@ type FaceitHistoryResponse = {
   error?: string;
 };
 
+type FaceitStatsSummary = {
+  matches: number | null;
+  wins: number | null;
+  winRate: number | null;
+  kills: number | null;
+  deaths: number | null;
+  kd: number | null;
+  adr: number | null;
+  hsPercent: number | null;
+  elo: number | null;
+  level: number | null;
+};
+
+type FaceitMapStat = {
+  name: string;
+  matches: number | null;
+  winRate: number | null;
+  kd: number | null;
+  adr: number | null;
+  hsPercent: number | null;
+};
+
+type FaceitStatsResponse = {
+  stats?: FaceitStatsSummary;
+  maps?: FaceitMapStat[];
+  game?: string;
+  nickname?: string;
+  error?: string;
+};
+
 const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
 
 const formatFaceitDate = (timestamp: number | null) => {
@@ -65,6 +95,36 @@ const formatFaceitDate = (timestamp: number | null) => {
 
 const buildFaceitMatchUrl = (matchId: string) =>
   `https://www.faceit.com/pt-br/cs2/room/${matchId}`;
+
+const formatFaceitValue = (value: number | null, digits = 2) => {
+  if (value === null || Number.isNaN(value)) return '--';
+  return value.toFixed(digits);
+};
+
+const formatFaceitPercent = (value: number | null) => {
+  if (value === null || Number.isNaN(value)) return '--';
+  return `${value.toFixed(1)}%`;
+};
+
+const formatFaceitCount = (value: number | null) => {
+  if (value === null || Number.isNaN(value)) return '--';
+  return Math.round(value).toString();
+};
+
+const formatFaceitMapName = (value: string) =>
+  value.replace(/^de_/, '').replace(/^cs_/, '').toUpperCase();
+
+const formatFaceitDiff = (kills: number | null, deaths: number | null) => {
+  if (kills === null || deaths === null) return '--';
+  const diff = Math.round(kills - deaths);
+  if (diff > 0) return `+${diff}`;
+  return diff.toString();
+};
+
+const getFaceitDiffClass = (kills: number | null, deaths: number | null) => {
+  if (kills === null || deaths === null) return 'text-slate-400';
+  return kills - deaths >= 0 ? 'text-emerald-300' : 'text-[#ff8a8a]';
+};
 
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [user, setUser] = useState<PlayerProfile | null>(null);
@@ -78,6 +138,13 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [faceitLoading, setFaceitLoading] = useState(false);
   const [faceitError, setFaceitError] = useState('');
   const [faceitLoaded, setFaceitLoaded] = useState(false);
+  const [faceitStats, setFaceitStats] = useState<FaceitStatsSummary | null>(
+    null,
+  );
+  const [faceitMaps, setFaceitMaps] = useState<FaceitMapStat[]>([]);
+  const [faceitStatsLoading, setFaceitStatsLoading] = useState(false);
+  const [faceitStatsError, setFaceitStatsError] = useState('');
+  const [faceitStatsGame, setFaceitStatsGame] = useState('');
   const [gcProfileUrl, setGcProfileUrl] = useState('');
   const [faceitProfileUrl, setFaceitProfileUrl] = useState('');
   const [savingProfile, setSavingProfile] = useState<
@@ -238,6 +305,57 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
     void fetchFaceitHistory();
   }, [historyTab, faceitProfileUrl, faceitLoaded]);
 
+  useEffect(() => {
+    const fetchFaceitStats = async () => {
+      if (historyTab !== 'faceit') return;
+      if (!supabase) {
+        setFaceitStatsError('Supabase nao configurado.');
+        setFaceitStats(null);
+        setFaceitMaps([]);
+        setFaceitStatsLoading(false);
+        return;
+      }
+      if (!faceitProfileUrl) {
+        setFaceitStatsError('Informe o link da Faceit para carregar estatisticas.');
+        setFaceitStats(null);
+        setFaceitMaps([]);
+        setFaceitStatsLoading(false);
+        return;
+      }
+
+      setFaceitStatsLoading(true);
+      setFaceitStatsError('');
+
+      const { data, error: invokeError } =
+        await supabase.functions.invoke<FaceitStatsResponse>('faceit-stats', {
+          body: { faceitProfileUrl },
+        });
+
+      if (invokeError) {
+        setFaceitStatsError(invokeError.message);
+        setFaceitStats(null);
+        setFaceitMaps([]);
+        setFaceitStatsLoading(false);
+        return;
+      }
+
+      if (data?.error) {
+        setFaceitStatsError(data.error);
+        setFaceitStats(null);
+        setFaceitMaps([]);
+        setFaceitStatsLoading(false);
+        return;
+      }
+
+      setFaceitStats(data?.stats ?? null);
+      setFaceitMaps(data?.maps ?? []);
+      setFaceitStatsGame(data?.game ?? '');
+      setFaceitStatsLoading(false);
+    };
+
+    void fetchFaceitStats();
+  }, [historyTab, faceitProfileUrl]);
+
   const chartBars = useMemo(() => [40, 70, 45, 90, 65, 80, 95], []);
 
   if (loading) {
@@ -317,22 +435,22 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-12">
+    <div className="min-h-screen bg-[#050505] px-6 py-12 text-slate-200">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="flex flex-col items-center rounded-[3rem] border border-slate-100 bg-white p-8 text-center shadow-xl">
+          <div className="flex flex-col items-center rounded-sm border border-white/5 bg-[#0f1115] p-8 text-center">
             {user.avatar_url ? (
               <img
                 src={user.avatar_url}
                 alt={user.nickname}
-                className="mb-6 h-32 w-32 rounded-full border-4 border-blue-500 object-cover shadow-2xl"
+                className="mb-6 h-32 w-32 rounded-sm border-4 border-[#00f2ff] object-cover shadow-[0_0_25px_rgba(0,242,255,0.25)] grayscale"
               />
             ) : (
-              <div className="mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-blue-500 bg-slate-100 text-3xl font-black text-slate-500">
+              <div className="mb-6 flex h-32 w-32 items-center justify-center rounded-sm border-4 border-[#00f2ff] bg-[#0b0f14] text-3xl font-black text-slate-500">
                 {user.nickname.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <h2 className="text-3xl font-black italic tracking-tight text-slate-900">
+            <h2 className="text-3xl font-black italic tracking-tight text-slate-100">
               {user.nickname}
             </h2>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -343,83 +461,94 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                 FACEIT LVL {user.faceit_level}
               </span>
             </div>
-            <div className="mt-8 w-full border-t border-slate-50 pt-6">
-              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+            <div className="mt-8 w-full border-t border-white/10 pt-6">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
                 Elo interno
               </p>
-              <p className="text-4xl font-black italic text-blue-600">
+              <p className="text-4xl font-black italic text-[#00f2ff]">
                 {user.elo_interno}
               </p>
             </div>
           </div>
 
-          <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:col-span-2">
             <StatDetailCard
               icon={<Activity />}
               label="K/D Ratio"
               value={stats.kd}
-              color="text-emerald-500"
+              color="text-emerald-300"
             />
             <StatDetailCard
               icon={<Target />}
               label="Media ADR"
               value={stats.adr}
-              color="text-blue-500"
+              color="text-[#00f2ff]"
             />
             <StatDetailCard
               icon={<TrendingUp />}
               label="Winrate"
               value={stats.winrate}
-              color="text-indigo-500"
+              color="text-[#00f2ff]"
             />
 
-            <div className="md:col-span-3 rounded-[2.5rem] bg-slate-900 p-8 text-white">
+            <div className="relative md:col-span-3 rounded-sm border border-white/10 bg-[#0b0f14] p-8 text-white">
               <h3 className="mb-4 text-sm font-black uppercase tracking-[0.3em] text-slate-500">
                 Evolucao de Elo
               </h3>
-              <div className="flex h-32 items-end gap-2">
-                {chartBars.map((height, index) => (
-                  <div
-                    key={index}
-                    className="flex-1 rounded-t-lg bg-blue-500"
-                    style={{ height: `${height}%` }}
+              <div className="relative h-32">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="h-full w-full"
+                  preserveAspectRatio="none"
+                >
+                  <polyline
+                    fill="none"
+                    stroke="#00f2ff"
+                    strokeWidth="2"
+                    points={chartBars
+                      .map((value, index) => {
+                        const x = (index / (chartBars.length - 1)) * 100;
+                        const y = 100 - value;
+                        return `${x},${y}`;
+                      })
+                      .join(' ')}
                   />
-                ))}
+                </svg>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mb-12 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-sm">
+        <div className="mb-12 rounded-sm border border-white/5 bg-[#0f1115] p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-lg font-black uppercase tracking-[0.2em] text-slate-800">
+              <h3 className="text-lg font-black uppercase tracking-[0.2em] text-slate-100">
                 Vincular perfis
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-400">
                 Conecte seus perfis para sincronizar os niveis de GC e Faceit.
               </p>
             </div>
             {profileStatus && (
-              <span className="text-xs font-semibold text-blue-600">
+              <span className="text-xs font-semibold text-[#00f2ff]">
                 {profileStatus}
               </span>
             )}
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-5">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
                 GamersClub
               </div>
               <input
                 value={gcProfileUrl}
                 onChange={(event) => setGcProfileUrl(event.target.value)}
                 placeholder="https://www.gamersclub.com.br/..."
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500"
+                className="mt-3 w-full rounded-sm border border-white/10 bg-[#0b0f14] px-4 py-3 text-sm font-semibold text-slate-200 outline-none transition focus:border-[#00f2ff]"
               />
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   Nivel atual:{' '}
                   <span className={getGcLevelBadgeClass(user.gc_level, 'sm')}>
                     GC {user.gc_level}
@@ -429,25 +558,25 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                   type="button"
                   onClick={() => handleSaveProfile('gc')}
                   disabled={savingProfile === 'gc'}
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                  className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
                 >
                   {savingProfile === 'gc' ? 'Salvando...' : 'Vincular'}
                 </button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+            <div className="rounded-sm border border-white/10 bg-white/5 p-5">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
                 Faceit
               </div>
               <input
                 value={faceitProfileUrl}
                 onChange={(event) => setFaceitProfileUrl(event.target.value)}
                 placeholder="https://www.faceit.com/..."
-                className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-500"
+                className="mt-3 w-full rounded-sm border border-white/10 bg-[#0b0f14] px-4 py-3 text-sm font-semibold text-slate-200 outline-none transition focus:border-[#00f2ff]"
               />
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   Nivel atual:{' '}
                   <span
                     className={getFaceitLevelBadgeClass(
@@ -462,7 +591,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                   type="button"
                   onClick={() => handleSaveProfile('faceit')}
                   disabled={savingProfile === 'faceit'}
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                  className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
                 >
                   {savingProfile === 'faceit' ? 'Salvando...' : 'Vincular'}
                 </button>
@@ -473,10 +602,10 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
 
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900">
+            <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-100">
               Ultimas partidas
             </h3>
-            <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2">
+            <div className="flex flex-wrap gap-2 rounded-sm border border-white/10 bg-white/5 p-2">
               {([
                 { id: 'synapse', label: 'SynapseCS' },
                 { id: 'faceit', label: 'Faceit' },
@@ -488,10 +617,10 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                     key={tab.id}
                     type="button"
                     onClick={() => setHistoryTab(tab.id)}
-                    className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] transition ${
+                    className={`rounded-sm px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] transition ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                        : 'text-slate-500 hover:bg-white'
+                        ? 'bg-[#00f2ff] text-[#050505] shadow-[0_0_16px_rgba(0,242,255,0.35)]'
+                        : 'text-slate-400 hover:bg-white/10'
                     }`}
                   >
                     {tab.label}
@@ -501,73 +630,182 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
             </div>
           </div>
 
-          <div className="rounded-[2.5rem] border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="rounded-sm border border-white/5 bg-[#0f1115] p-6">
             {historyTab === 'synapse' && (
               <MatchHistory playerId={playerId} embedded />
             )}
 
             {historyTab === 'faceit' && (
-              <div className="space-y-4">
-                {faceitLoading ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-                    Carregando partidas da Faceit...
+              <div className="space-y-6">
+                <div className="rounded-sm border border-white/10 bg-[#0b0f14] p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Faceit Stats
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Atualizacao ao vivo
+                      </p>
+                    </div>
+                    {faceitStatsGame && (
+                      <span className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff]">
+                        {faceitStatsGame.toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                ) : faceitError ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
-                    {faceitError}
-                  </div>
-                ) : faceitMatches.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-                    Nenhuma partida encontrada na Faceit.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {faceitMatches.map((match) => {
-                      const score = match.score
-                        ? `${match.score.faction1 ?? '-'} x ${match.score.faction2 ?? '-'}`
-                        : '--';
-                      return (
+
+                  {faceitStatsLoading ? (
+                    <div className="mt-4 text-sm text-slate-400">
+                      Carregando estatisticas da Faceit...
+                    </div>
+                  ) : faceitStatsError ? (
+                    <div className="mt-4 rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-4 py-3 text-sm text-[#ff8a8a]">
+                      {faceitStatsError}
+                    </div>
+                  ) : faceitStats ? (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      <FaceitStatCard
+                        label="K"
+                        value={formatFaceitCount(faceitStats.kills)}
+                      />
+                      <FaceitStatCard
+                        label="D"
+                        value={formatFaceitCount(faceitStats.deaths)}
+                      />
+                      <FaceitStatCard
+                        label="Diff"
+                        value={formatFaceitDiff(
+                          faceitStats.kills,
+                          faceitStats.deaths,
+                        )}
+                        valueClassName={getFaceitDiffClass(
+                          faceitStats.kills,
+                          faceitStats.deaths,
+                        )}
+                      />
+                      <FaceitStatCard
+                        label="ADR"
+                        value={formatFaceitValue(faceitStats.adr, 1)}
+                      />
+                      <FaceitStatCard
+                        label="HS%"
+                        value={formatFaceitPercent(faceitStats.hsPercent)}
+                      />
+                      <FaceitStatCard
+                        label="Winrate"
+                        value={formatFaceitPercent(faceitStats.winRate)}
+                      />
+                      <FaceitStatCard
+                        label="Matches"
+                        value={formatFaceitCount(faceitStats.matches)}
+                      />
+                      <FaceitStatCard
+                        label="Wins"
+                        value={formatFaceitCount(faceitStats.wins)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-4 text-sm text-slate-400">
+                      Estatisticas indisponiveis.
+                    </div>
+                  )}
+                </div>
+
+                {faceitMaps.length > 0 && (
+                  <div className="rounded-sm border border-white/10 bg-[#0b0f14] p-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Mapas mais jogados
+                      </p>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {faceitMaps.map((map) => (
                         <div
-                          key={match.id}
-                          className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4"
+                          key={map.name}
+                          className="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3"
                         >
                           <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                              Faceit
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                              {formatFaceitMapName(map.name)}
                             </p>
-                            <p className="font-bold text-slate-800">
-                              {match.competitionName || 'Partida Faceit'}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              {formatFaceitDate(match.startedAt)}
+                            <p className="text-xs text-slate-500">
+                              Matches {formatFaceitCount(map.matches)}
                             </p>
                           </div>
-                          <div className="text-center">
-                            <p className="text-xs font-bold uppercase text-slate-400">
-                              Placar
-                            </p>
-                            <p className="text-lg font-black text-slate-800">
-                              {score}
-                            </p>
+                          <div className="flex flex-wrap gap-4 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-400">
+                            <span>WR {formatFaceitPercent(map.winRate)}</span>
+                            <span>KD {formatFaceitValue(map.kd)}</span>
+                            <span>ADR {formatFaceitValue(map.adr, 1)}</span>
+                            <span>HS {formatFaceitPercent(map.hsPercent)}</span>
                           </div>
-                          <a
-                            href={buildFaceitMatchUrl(match.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-full border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 transition hover:bg-slate-50"
-                          >
-                            Ver
-                          </a>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                <div className="space-y-4">
+                  {faceitLoading ? (
+                    <div className="rounded-sm border border-white/10 bg-white/5 px-5 py-4 text-sm text-slate-400">
+                      Carregando partidas da Faceit...
+                    </div>
+                  ) : faceitError ? (
+                    <div className="rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-5 py-4 text-sm text-[#ff8a8a]">
+                      {faceitError}
+                    </div>
+                  ) : faceitMatches.length === 0 ? (
+                    <div className="rounded-sm border border-white/10 bg-white/5 px-5 py-4 text-sm text-slate-400">
+                      Nenhuma partida encontrada na Faceit.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {faceitMatches.map((match) => {
+                        const score = match.score
+                          ? `${match.score.faction1 ?? '-'} x ${match.score.faction2 ?? '-'}`
+                          : '--';
+                        return (
+                          <div
+                            key={match.id}
+                            className="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-white/10 bg-[#0b0f14] px-5 py-4"
+                          >
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                                Faceit
+                              </p>
+                              <p className="font-bold text-slate-100">
+                                {match.competitionName || 'Partida Faceit'}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {formatFaceitDate(match.startedAt)}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs font-bold uppercase text-slate-500">
+                                Placar
+                              </p>
+                              <p className="text-lg font-black text-slate-100">
+                                {score}
+                              </p>
+                            </div>
+                            <a
+                              href={buildFaceitMatchUrl(match.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
+                            >
+                              Ver
+                            </a>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {historyTab === 'gc' && (
-              <div className="space-y-3 text-sm text-slate-600">
+              <div className="space-y-3 text-sm text-slate-400">
                 <p>
                   Integracao da GamersClub em breve. Por enquanto, voce pode
                   importar manualmente via print ou atualizar seus niveis pelo
@@ -578,7 +816,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                     href={gcProfileUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 transition hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
                   >
                     Abrir perfil GC
                   </a>
@@ -600,11 +838,36 @@ type StatDetailCardProps = {
 };
 
 const StatDetailCard = ({ icon, label, value, color }: StatDetailCardProps) => (
-  <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-slate-100 bg-white p-6 text-center shadow-sm">
+  <div className="flex flex-col items-center justify-center rounded-sm border border-[#00f2ff]/20 bg-transparent p-6 text-center">
     <div className={`${color} mb-3`}>{icon}</div>
-    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
       {label}
     </p>
     <p className={`text-2xl font-black ${color}`}>{value}</p>
+  </div>
+);
+
+type FaceitStatCardProps = {
+  label: string;
+  value: string;
+  valueClassName?: string;
+};
+
+const FaceitStatCard = ({
+  label,
+  value,
+  valueClassName,
+}: FaceitStatCardProps) => (
+  <div className="rounded-sm border border-white/10 bg-[#0f1115] p-4">
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+      {label}
+    </p>
+    <p
+      className={`mt-2 text-xl font-black ${
+        valueClassName ?? 'text-[#00f2ff]'
+      }`}
+    >
+      {value}
+    </p>
   </div>
 );

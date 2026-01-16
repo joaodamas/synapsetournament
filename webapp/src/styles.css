@@ -1,24 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Sora:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  --synapse-bg: #050505;
+  --synapse-surface: #0f1115;
+  --synapse-surface-2: #11151c;
+  --synapse-accent: #00f2ff;
+  --synapse-warning: #ff3e3e;
+  --synapse-text: #cbd5e1;
+  --synapse-muted: #64748b;
 }
 
 body {
-  @apply font-body text-slate-800 antialiased;
+  @apply font-body antialiased;
+  background-color: var(--synapse-bg);
+  color: var(--synapse-text);
 }
 
 .page-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.18), transparent 40%),
-    radial-gradient(circle at 85% 5%, rgba(249, 115, 22, 0.15), transparent 45%),
-    radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.18), transparent 45%),
-    #f8fafc;
+  background: radial-gradient(
+      circle at 12% 12%,
+      rgba(0, 242, 255, 0.12),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 88% 16%,
+      rgba(255, 62, 62, 0.08),
+      transparent 46%
+    ),
+    radial-gradient(
+      circle at 18% 82%,
+      rgba(34, 197, 94, 0.08),
+      transparent 48%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%),
+    var(--synapse-bg);
   position: relative;
   overflow: hidden;
 }
@@ -29,21 +50,51 @@ body {
   inset: 0;
   background-image: linear-gradient(
       120deg,
-      rgba(15, 23, 42, 0.04),
+      rgba(255, 255, 255, 0.05),
       rgba(15, 23, 42, 0)
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(15, 23, 42, 0.05) 0,
-      rgba(15, 23, 42, 0.05) 1px,
+      rgba(255, 255, 255, 0.04) 0,
+      rgba(255, 255, 255, 0.04) 1px,
       transparent 1px,
-      transparent 84px
+      transparent 88px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 68px
     );
-  opacity: 0.5;
+  opacity: 0.6;
   pointer-events: none;
 }
 
 .page-shell > * {
   position: relative;
   z-index: 1;
+}
+
+@keyframes hudReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hud-reveal {
+  animation: hudReveal 0.6s ease both;
+}
+
+.hud-reveal-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.hud-reveal-delay-2 {
+  animation-delay: 0.16s;
 }

@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        brand: ['\"Plus Jakarta Sans\"', 'Sora', 'ui-sans-serif', 'system-ui'],
-        display: ['Sora', 'ui-sans-serif', 'system-ui'],
-        body: ['IBM Plex Sans', 'ui-sans-serif', 'system-ui'],
+        brand: ['\"Archivo Black\"', 'Inter', 'ui-sans-serif', 'system-ui'],
+        display: ['\"Archivo Black\"', 'Inter', 'ui-sans-serif', 'system-ui'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui'],
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular'],
       },
       boxShadow: {

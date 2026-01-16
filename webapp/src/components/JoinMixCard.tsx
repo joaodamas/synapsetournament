@@ -55,12 +55,12 @@ export const JoinMixCard = ({ onJoin }: JoinMixCardProps) => {
   };
 
   return (
-    <div className="rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md">
+    <div className="rounded-sm border border-white/5 bg-[#0f1115] p-8 transition-all hover:border-[#00f2ff]/30">
       <div className="mb-6 flex items-center gap-3">
-        <div className="rounded-xl bg-slate-100 p-2 text-slate-600">
+        <div className="rounded-sm border border-white/10 bg-white/5 p-2 text-[#00f2ff]">
           <Link2 size={20} />
         </div>
-        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-800">
+        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-100">
           Entrar em mix existente
         </h3>
       </div>
@@ -76,22 +76,22 @@ export const JoinMixCard = ({ onJoin }: JoinMixCardProps) => {
             }
           }}
           placeholder="Cole o link ou o codigo da sala..."
-          className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 px-6 py-4 pr-14 text-sm font-bold text-slate-700 transition-all focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-sm border border-white/10 bg-[#0b0f14] px-6 py-4 pr-14 text-sm font-bold text-slate-200 transition-all focus:border-[#00f2ff] focus:outline-none"
         />
         <button
           type="button"
           onClick={handleJoin}
-          className="absolute right-2 rounded-xl bg-slate-900 p-3 text-white shadow-lg transition-all hover:bg-blue-600"
+          className="absolute right-2 rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] p-3 text-[#050505] transition-all hover:brightness-95"
         >
           <ArrowRight size={18} />
         </button>
       </div>
 
       {error && (
-        <p className="mt-3 text-xs font-semibold text-orange-600">{error}</p>
+        <p className="mt-3 text-xs font-semibold text-[#ff8a8a]">{error}</p>
       )}
 
-      <p className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+      <p className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
         <Smartphone size={12} />
         Dica: peça o link ao capitao da sala.
       </p>

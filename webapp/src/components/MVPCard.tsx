@@ -17,15 +17,14 @@ export const MVPCard = ({ playerStats, impactRating }: MVPCardProps) => {
   const avatar = playerStats.avatarUrl;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-900 p-1 shadow-2xl">
-      <div className="rounded-[22px] bg-slate-900/90 p-6 backdrop-blur-xl">
+    <div className="relative overflow-hidden rounded-sm border border-white/10 bg-[#0f1115] p-6">
         <div className="mb-6 flex items-center justify-between">
-          <span className="rounded-full bg-yellow-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-black">
+          <span className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#7ff7ff]">
             Match MVP
           </span>
           <div className="text-right">
-            <p className="text-xs uppercase text-slate-400">Impact Rating</p>
-            <p className="font-bold text-white">{formatImpact(impactRating)}</p>
+            <p className="text-xs uppercase text-slate-500">Impact Rating</p>
+            <p className="font-bold text-slate-100">{formatImpact(impactRating)}</p>
           </div>
         </div>
 
@@ -34,15 +33,15 @@ export const MVPCard = ({ playerStats, impactRating }: MVPCardProps) => {
             <img
               src={avatar}
               alt={playerStats.nickname}
-              className="h-20 w-20 rounded-full border-4 border-yellow-500 object-cover shadow-lg shadow-yellow-500/20"
+              className="h-20 w-20 rounded-sm border-4 border-[#00f2ff] object-cover shadow-[0_0_18px_rgba(0,242,255,0.35)]"
             />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-yellow-500 bg-slate-800 text-xl font-bold text-slate-200 shadow-lg shadow-yellow-500/20">
+            <div className="flex h-20 w-20 items-center justify-center rounded-sm border-4 border-[#00f2ff] bg-[#0b0f14] text-xl font-bold text-slate-200 shadow-[0_0_18px_rgba(0,242,255,0.35)]">
               {initials}
             </div>
           )}
           <div>
-            <h2 className="text-2xl font-black italic text-white">
+            <h2 className="text-2xl font-black italic text-slate-100">
               {playerStats.nickname}
             </h2>
             <div className="mt-2 flex flex-wrap gap-4">
@@ -52,7 +51,6 @@ export const MVPCard = ({ playerStats, impactRating }: MVPCardProps) => {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
@@ -65,6 +63,6 @@ type StatBlockProps = {
 const StatBlock = ({ label, value }: StatBlockProps) => (
   <div>
     <p className="text-[10px] font-bold uppercase text-slate-500">{label}</p>
-    <p className="text-lg font-black text-white">{value}</p>
+    <p className="text-lg font-black text-slate-100">{value}</p>
   </div>
 );
