@@ -193,7 +193,7 @@ const getFunctionErrorMessage = (invokeError: unknown) => {
     context?: { body?: string; status?: number };
   };
   const contextBody = error.context?.body;
-  if (contextBody) {
+  if (typeof contextBody === 'string' && contextBody.trim().length > 0) {
     try {
       const parsed = JSON.parse(contextBody) as { error?: string };
       if (parsed?.error) {
@@ -203,7 +203,14 @@ const getFunctionErrorMessage = (invokeError: unknown) => {
       return contextBody;
     }
   }
-  return error.message ?? 'Falha ao executar a funcao.';
+  if (typeof error.message === 'string' && error.message.trim().length > 0) {
+    return error.message;
+  }
+  const status = error.context?.status;
+  if (typeof status === 'number') {
+    return `Falha ao executar a funcao (status ${status}).`;
+  }
+  return 'Falha ao executar a funcao.';
 };
 
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
