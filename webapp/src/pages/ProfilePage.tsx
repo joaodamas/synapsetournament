@@ -100,6 +100,11 @@ type GcStatsResponse = {
   error?: string;
 };
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as
+  | string
+  | undefined;
+
 const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
 
 const formatFaceitDate = (timestamp: number | null) => {
@@ -184,33 +189,46 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-const getFunctionErrorMessage = (invokeError: unknown) => {
-  if (!invokeError || typeof invokeError !== 'object') {
-    return 'Falha ao executar a funcao.';
+const invokeGcStats = async (body: {
+  playerId: string;
+  gcProfileUrl?: string;
+  imageUrl?: string;
+  imageBase64?: string;
+}) => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { error: 'Supabase nao configurado.' };
   }
-  const error = invokeError as {
-    message?: string;
-    context?: { body?: string; status?: number };
-  };
-  const contextBody = error.context?.body;
-  if (typeof contextBody === 'string' && contextBody.trim().length > 0) {
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/gc-stats`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await response.text();
+  let payload: GcStatsResponse | null = null;
+  if (text) {
     try {
-      const parsed = JSON.parse(contextBody) as { error?: string };
-      if (parsed?.error) {
-        return parsed.error;
-      }
-    } catch (_err) {
-      return contextBody;
+      payload = JSON.parse(text) as GcStatsResponse;
+    } catch (_error) {
+      payload = null;
     }
   }
-  if (typeof error.message === 'string' && error.message.trim().length > 0) {
-    return error.message;
+
+  if (!response.ok) {
+    return {
+      error:
+        payload?.error ||
+        text ||
+        `Falha ao executar a funcao (status ${response.status}).`,
+    };
   }
-  const status = error.context?.status;
-  if (typeof status === 'number') {
-    return `Falha ao executar a funcao (status ${status}).`;
-  }
-  return 'Falha ao executar a funcao.';
+
+  return { data: payload };
 };
 
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
@@ -598,11 +616,6 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   };
 
   const handleGcStatsImport = async (mode: 'image' | 'link') => {
-    if (!supabase) {
-      setGcStatsError('Supabase nao configurado.');
-      return;
-    }
-
     setGcStatsLoading(true);
     setGcStatsError('');
     setGcStatsStatus('');
@@ -641,13 +654,9 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       }
     }
 
-    const { data, error: invokeError } =
-      await supabase.functions.invoke<GcStatsResponse>('gc-stats', {
-        body,
-      });
-
+    const { data, error: invokeError } = await invokeGcStats(body);
     if (invokeError) {
-      setGcStatsError(getFunctionErrorMessage(invokeError));
+      setGcStatsError(invokeError);
       setGcStatsLoading(false);
       return;
     }
