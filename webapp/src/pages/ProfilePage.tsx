@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, Target, TrendingUp } from 'lucide-react';
 
@@ -17,6 +17,9 @@ type PlayerProfile = {
   faceit_level: number;
   gc_profile_url: string | null;
   faceit_profile_url: string | null;
+  gc_kd?: number | null;
+  gc_adr?: number | null;
+  gc_winrate?: number | null;
   elo_interno: number;
 };
 
@@ -86,6 +89,17 @@ type FaceitStatsResponse = {
   error?: string;
 };
 
+type GcStatsResponse = {
+  stats?: {
+    kd: number | null;
+    adr: number | null;
+    winrate: number | null;
+  };
+  warnings?: string[];
+  player?: PlayerProfile | null;
+  error?: string;
+};
+
 const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
 
 const formatFaceitDate = (timestamp: number | null) => {
@@ -128,6 +142,48 @@ const getFaceitDiffClass = (kills: number | null, deaths: number | null) => {
   return kills - deaths >= 0 ? 'text-emerald-300' : 'text-[#ff8a8a]';
 };
 
+const parseStatNumber = (value: string) => {
+  const normalized = value.replace('%', '').replace(',', '.').trim();
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const averageValues = (values: Array<number | null | undefined>) => {
+  const valid = values.filter(
+    (value): value is number => typeof value === 'number' && !Number.isNaN(value),
+  );
+  if (valid.length === 0) {
+    return null;
+  }
+  const total = valid.reduce((acc, value) => acc + value, 0);
+  return total / valid.length;
+};
+
+const formatAverageValue = (value: number | null, digits = 2) => {
+  if (value === null || Number.isNaN(value)) return '--';
+  return value.toFixed(digits);
+};
+
+const formatAveragePercent = (value: number | null) => {
+  if (value === null || Number.isNaN(value)) return '--';
+  return `${value.toFixed(1)}%`;
+};
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string' && result.length > 0) {
+        resolve(result);
+        return;
+      }
+      reject(new Error('Falha ao ler arquivo.'));
+    };
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo.'));
+    reader.readAsDataURL(file);
+  });
+
 export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [user, setUser] = useState<PlayerProfile | null>(null);
   const [stats, setStats] = useState<PlayerStats>({
@@ -147,8 +203,17 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   const [faceitStatsLoading, setFaceitStatsLoading] = useState(false);
   const [faceitStatsError, setFaceitStatsError] = useState('');
   const [faceitStatsGame, setFaceitStatsGame] = useState('');
+  const [faceitStatsLoaded, setFaceitStatsLoaded] = useState(false);
   const [gcProfileUrl, setGcProfileUrl] = useState('');
   const [faceitProfileUrl, setFaceitProfileUrl] = useState('');
+  const [gcStatsImageUrl, setGcStatsImageUrl] = useState('');
+  const [gcStatsImageFile, setGcStatsImageFile] = useState<File | null>(
+    null,
+  );
+  const [gcStatsPreview, setGcStatsPreview] = useState('');
+  const [gcStatsLoading, setGcStatsLoading] = useState(false);
+  const [gcStatsStatus, setGcStatsStatus] = useState('');
+  const [gcStatsError, setGcStatsError] = useState('');
   const [savingProfile, setSavingProfile] = useState<
     'gc' | 'faceit' | null
   >(null);
@@ -167,7 +232,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       const { data: player, error: playerError } = await supabase
         .from('players')
         .select(
-          'id, nickname, avatar_url, gc_level, faceit_level, gc_profile_url, faceit_profile_url, elo_interno',
+          'id, nickname, avatar_url, gc_level, faceit_level, gc_profile_url, faceit_profile_url, gc_kd, gc_adr, gc_winrate, elo_interno',
         )
         .eq('id', playerId)
         .single();
@@ -261,6 +326,15 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
   }, [faceitProfileUrl]);
 
   useEffect(() => {
+    setFaceitStatsLoaded(false);
+  }, [faceitProfileUrl]);
+
+  useEffect(() => {
+    if (!gcStatsPreview) return undefined;
+    return () => URL.revokeObjectURL(gcStatsPreview);
+  }, [gcStatsPreview]);
+
+  useEffect(() => {
     const fetchFaceitHistory = async () => {
       if (historyTab !== 'faceit') return;
       if (faceitLoaded) return;
@@ -309,19 +383,25 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
 
   useEffect(() => {
     const fetchFaceitStats = async () => {
-      if (historyTab !== 'faceit') return;
+      if (faceitStatsLoaded) return;
       if (!supabase) {
-        setFaceitStatsError('Supabase nao configurado.');
+        if (historyTab === 'faceit') {
+          setFaceitStatsError('Supabase nao configurado.');
+        }
         setFaceitStats(null);
         setFaceitMaps([]);
         setFaceitStatsLoading(false);
+        setFaceitStatsLoaded(true);
         return;
       }
       if (!faceitProfileUrl) {
-        setFaceitStatsError('Informe o link da Faceit para carregar estatisticas.');
+        if (historyTab === 'faceit') {
+          setFaceitStatsError('Informe o link da Faceit para carregar estatisticas.');
+        }
         setFaceitStats(null);
         setFaceitMaps([]);
         setFaceitStatsLoading(false);
+        setFaceitStatsLoaded(true);
         return;
       }
 
@@ -338,6 +418,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
         setFaceitStats(null);
         setFaceitMaps([]);
         setFaceitStatsLoading(false);
+        setFaceitStatsLoaded(true);
         return;
       }
 
@@ -346,6 +427,7 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
         setFaceitStats(null);
         setFaceitMaps([]);
         setFaceitStatsLoading(false);
+        setFaceitStatsLoaded(true);
         return;
       }
 
@@ -353,10 +435,11 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       setFaceitMaps(data?.maps ?? []);
       setFaceitStatsGame(data?.game ?? '');
       setFaceitStatsLoading(false);
+      setFaceitStatsLoaded(true);
     };
 
     void fetchFaceitStats();
-  }, [historyTab, faceitProfileUrl]);
+  }, [faceitProfileUrl, faceitStatsLoaded, historyTab]);
 
   const chartBars = useMemo(() => [40, 70, 45, 90, 65, 80, 95], []);
 
@@ -379,6 +462,34 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
       </div>
     );
   }
+
+  const synapseKd = parseStatNumber(stats.kd);
+  const synapseAdr = parseStatNumber(stats.adr);
+  const synapseWinrate = parseStatNumber(stats.winrate);
+
+  const averageKd = averageValues([
+    synapseKd,
+    faceitStats?.kd ?? null,
+    user.gc_kd ?? null,
+  ]);
+  const averageAdr = averageValues([
+    synapseAdr,
+    faceitStats?.adr ?? null,
+    user.gc_adr ?? null,
+  ]);
+  const averageWinrate = averageValues([
+    synapseWinrate,
+    faceitStats?.winRate ?? null,
+    user.gc_winrate ?? null,
+  ]);
+
+  const averageKdLabel = formatAverageValue(averageKd, 2);
+  const averageAdrLabel = formatAverageValue(averageAdr, 1);
+  const averageWinrateLabel = formatAveragePercent(averageWinrate);
+  const hasGcStats =
+    (user.gc_kd !== null && user.gc_kd !== undefined) ||
+    (user.gc_adr !== null && user.gc_adr !== undefined) ||
+    (user.gc_winrate !== null && user.gc_winrate !== undefined);
 
   const handleSaveProfile = async (provider: 'gc' | 'faceit') => {
     if (!supabase) {
@@ -436,6 +547,108 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
     setSavingProfile(null);
   };
 
+  const handleGcImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setGcStatsImageFile(file);
+    setGcStatsError('');
+    setGcStatsStatus('');
+    if (!file) {
+      setGcStatsPreview('');
+      return;
+    }
+    setGcStatsImageUrl('');
+    setGcStatsPreview(URL.createObjectURL(file));
+  };
+
+  const handleGcImageUrlChange = (value: string) => {
+    const nextValue = value.trim();
+    setGcStatsImageUrl(value);
+    setGcStatsImageFile(null);
+    setGcStatsPreview(nextValue);
+  };
+
+  const handleGcStatsImport = async (mode: 'image' | 'link') => {
+    if (!supabase) {
+      setGcStatsError('Supabase nao configurado.');
+      return;
+    }
+
+    setGcStatsLoading(true);
+    setGcStatsError('');
+    setGcStatsStatus('');
+
+    const body: {
+      playerId: string;
+      gcProfileUrl?: string;
+      imageUrl?: string;
+      imageBase64?: string;
+    } = { playerId };
+
+    if (mode === 'link') {
+      const url = gcProfileUrl.trim();
+      if (!url) {
+        setGcStatsError('Informe o link do perfil GC.');
+        setGcStatsLoading(false);
+        return;
+      }
+      body.gcProfileUrl = url;
+    } else {
+      const imageUrl = gcStatsImageUrl.trim();
+      if (gcStatsImageFile) {
+        try {
+          body.imageBase64 = await readFileAsDataUrl(gcStatsImageFile);
+        } catch (_error) {
+          setGcStatsError('Falha ao ler a imagem.');
+          setGcStatsLoading(false);
+          return;
+        }
+      } else if (imageUrl) {
+        body.imageUrl = imageUrl;
+      } else {
+        setGcStatsError('Envie a imagem ou o link do print.');
+        setGcStatsLoading(false);
+        return;
+      }
+    }
+
+    const { data, error: invokeError } =
+      await supabase.functions.invoke<GcStatsResponse>('gc-stats', {
+        body,
+      });
+
+    if (invokeError) {
+      setGcStatsError(invokeError.message);
+      setGcStatsLoading(false);
+      return;
+    }
+
+    if (data?.error) {
+      setGcStatsError(data.error);
+      setGcStatsLoading(false);
+      return;
+    }
+
+    if (data?.player) {
+      setUser(data.player);
+      setGcProfileUrl(data.player.gc_profile_url ?? gcProfileUrl);
+    } else if (data?.stats) {
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              gc_kd: data.stats?.kd ?? prev.gc_kd,
+              gc_adr: data.stats?.adr ?? prev.gc_adr,
+              gc_winrate: data.stats?.winrate ?? prev.gc_winrate,
+            }
+          : prev,
+      );
+    }
+
+    const warningText = data?.warnings?.filter(Boolean).join(' ');
+    setGcStatsStatus(warningText || 'Stats GC atualizados.');
+    setGcStatsLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] px-6 py-12 text-slate-200">
       <div className="mx-auto max-w-6xl">
@@ -477,19 +690,19 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
             <StatDetailCard
               icon={<Activity />}
               label="K/D Ratio"
-              value={stats.kd}
+              value={averageKdLabel}
               color="text-emerald-300"
             />
             <StatDetailCard
               icon={<Target />}
               label="Media ADR"
-              value={stats.adr}
+              value={averageAdrLabel}
               color="text-[#00f2ff]"
             />
             <StatDetailCard
               icon={<TrendingUp />}
               label="Winrate"
-              value={stats.winrate}
+              value={averageWinrateLabel}
               color="text-[#00f2ff]"
             />
 
@@ -793,35 +1006,39 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
                                 {formatFaceitDate(match.startedAt)}
                               </p>
                             </div>
-                          <div className="text-center">
-                            <p className="text-xs font-bold uppercase text-slate-500">
-                              Placar
-                            </p>
-                            <p className="text-lg font-black text-slate-100">
-                              {score}
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs font-bold uppercase text-slate-500">
-                              K / D
-                            </p>
-                            <p className="text-lg font-black text-slate-100">
-                              {formatFaceitCount(match.kills)} /{' '}
-                              {formatFaceitCount(match.deaths)}
-                            </p>
-                            <p
-                              className={`text-[10px] font-black uppercase ${getFaceitDiffClass(
-                                match.kills ?? null,
-                                match.deaths ?? null,
-                              )}`}
-                            >
-                              Diff {formatFaceitDiff(match.kills ?? null, match.deaths ?? null)}
-                            </p>
-                          </div>
-                          <a
-                            href={buildFaceitMatchUrl(match.id)}
-                            target="_blank"
-                            rel="noreferrer"
+                            <div className="text-center">
+                              <p className="text-xs font-bold uppercase text-slate-500">
+                                Placar
+                              </p>
+                              <p className="text-lg font-black text-slate-100">
+                                {score}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xs font-bold uppercase text-slate-500">
+                                K / D
+                              </p>
+                              <p className="text-lg font-black text-slate-100">
+                                {formatFaceitCount(match.kills)} /{' '}
+                                {formatFaceitCount(match.deaths)}
+                              </p>
+                              <p
+                                className={`text-[10px] font-black uppercase ${getFaceitDiffClass(
+                                  match.kills ?? null,
+                                  match.deaths ?? null,
+                                )}`}
+                              >
+                                Diff{' '}
+                                {formatFaceitDiff(
+                                  match.kills ?? null,
+                                  match.deaths ?? null,
+                                )}
+                              </p>
+                            </div>
+                            <a
+                              href={buildFaceitMatchUrl(match.id)}
+                              target="_blank"
+                              rel="noreferrer"
                               className="rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
                             >
                               Ver
@@ -836,22 +1053,122 @@ export const ProfilePage = ({ playerId }: ProfilePageProps) => {
             )}
 
             {historyTab === 'gc' && (
-              <div className="space-y-3 text-sm text-slate-400">
-                <p>
-                  Integracao da GamersClub em breve. Por enquanto, voce pode
-                  importar manualmente via print ou atualizar seus niveis pelo
-                  link.
-                </p>
-                {gcProfileUrl && (
-                  <a
-                    href={gcProfileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
-                  >
-                    Abrir perfil GC
-                  </a>
-                )}
+              <div className="space-y-6">
+                <div className="rounded-sm border border-white/10 bg-[#0b0f14] p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Importar stats GC
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Envie o print ou leia pelo link do perfil.
+                      </p>
+                    </div>
+                    {gcStatsStatus && (
+                      <span className="text-xs font-semibold text-[#00f2ff]">
+                        {gcStatsStatus}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Upload do print
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleGcImageChange}
+                        className="mt-2 w-full rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3 text-xs text-slate-300 file:mr-4 file:rounded-sm file:border-0 file:bg-[#00f2ff] file:px-4 file:py-2 file:text-[10px] file:font-black file:uppercase file:tracking-[0.2em] file:text-[#050505]"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                        Link do print
+                      </p>
+                      <input
+                        value={gcStatsImageUrl}
+                        onChange={(event) =>
+                          handleGcImageUrlChange(event.target.value)
+                        }
+                        placeholder="https://..."
+                        className="mt-2 w-full rounded-sm border border-white/10 bg-[#0f1115] px-4 py-3 text-sm font-semibold text-slate-200 outline-none transition focus:border-[#00f2ff]"
+                      />
+                    </div>
+                  </div>
+
+                  {gcStatsPreview && (
+                    <div className="mt-4 overflow-hidden rounded-sm border border-white/10 bg-[#050505]">
+                      <img
+                        src={gcStatsPreview}
+                        alt="Preview stats GC"
+                        className="h-40 w-full object-cover opacity-90"
+                      />
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleGcStatsImport('image')}
+                      disabled={gcStatsLoading}
+                      className="rounded-sm border border-[#00f2ff]/40 bg-[#00f2ff] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#050505] transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
+                    >
+                      {gcStatsLoading ? 'Lendo...' : 'Ler imagem'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGcStatsImport('link')}
+                      disabled={gcStatsLoading}
+                      className="rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-slate-500"
+                    >
+                      {gcStatsLoading ? 'Lendo...' : 'Ler perfil'}
+                    </button>
+                    {gcProfileUrl && (
+                      <a
+                        href={gcProfileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-sm border border-[#00f2ff]/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#7ff7ff] transition hover:bg-[#00f2ff]/10"
+                      >
+                        Abrir perfil GC
+                      </a>
+                    )}
+                  </div>
+
+                  {gcStatsError && (
+                    <div className="mt-4 rounded-sm border border-[#ff3e3e]/40 bg-[#ff3e3e]/10 px-4 py-3 text-sm text-[#ff8a8a]">
+                      {gcStatsError}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-sm border border-white/10 bg-[#0b0f14] p-5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                    Stats GamersClub
+                  </p>
+                  {hasGcStats ? (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <FaceitStatCard
+                        label="KDR"
+                        value={formatFaceitValue(user.gc_kd ?? null, 2)}
+                      />
+                      <FaceitStatCard
+                        label="ADR"
+                        value={formatFaceitValue(user.gc_adr ?? null, 1)}
+                      />
+                      <FaceitStatCard
+                        label="Winrate"
+                        value={formatFaceitPercent(user.gc_winrate ?? null)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-3 text-sm text-slate-400">
+                      Nenhum stats GC importado.
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
