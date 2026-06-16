@@ -1,12 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as
-  | string
-  | undefined;
-
-export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
-
-export const supabase = hasSupabaseConfig
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
-  : null;
+// Supabase foi removido. Backend migrado para Firebase.
+// Use webapp/src/lib/firebase.ts para todas as operações de banco de dados.
+export const supabase = null;
+export const hasSupabaseConfig = false;

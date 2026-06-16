@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Players ──────────────────────────────────────────────────────────────
+    match /players/{steamId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.token.steam_id == steamId;
+      allow update: if request.auth != null && request.auth.token.steam_id == steamId;
+    }
+
+    // ── Mixes ─────────────────────────────────────────────────────────────────
+    match /mixes/{mixId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        // criador pode atualizar tudo
+        resource.data.creator_id == request.auth.token.steam_id
+        // participantes podem atualizar apenas banned_maps e score
+        || (request.auth.token.steam_id in resource.data.team_a
+            || request.auth.token.steam_id in resource.data.team_b)
+      );
+
+      // Participantes do mix
+      match /participants/{participantId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.token.steam_id == participantId;
+        allow delete: if request.auth != null && request.auth.token.steam_id == participantId;
+      }
+
+      // Stats por jogador (escritas pelo plugin via token de servidor)
+      match /stats/{playerId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.token.server_plugin == true
+                     || (request.auth != null && get(/databases/$(database)/documents/mixes/$(mixId)).data.creator_id == request.auth.token.steam_id);
+      }
+    }
+
+    // ── Torneios ──────────────────────────────────────────────────────────────
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && resource.data.owner_id == request.auth.uid;
+
+      match /matches/{matchId} {
+        allow read: if true;
+        allow write: if request.auth != null && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.owner_id == request.auth.uid;
+      }
+
+      match /registrations/{teamId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
+      }
+    }
+
+    // ── Leaderboard snapshot (gerado por Cloud Function) ─────────────────────
+    match /leaderboard/{entry} {
+      allow read: if true;
+      allow write: if false; // só Cloud Functions escrevem
+    }
+  }
+}

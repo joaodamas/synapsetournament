@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "players",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "elo_interno", "order": "DESCENDING" },
+        { "fieldPath": "gc_level",    "order": "DESCENDING" },
+        { "fieldPath": "faceit_level","order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mixes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",     "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "participants",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "mix_id",    "order": "ASCENDING" },
+        { "fieldPath": "joined_at", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,36 @@
+name: Build SynapseStats Plugin
+
+on:
+  push:
+    paths:
+      - 'server/SynapseStats/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        working-directory: server/SynapseStats
+        run: dotnet restore
+
+      - name: Publish
+        working-directory: server/SynapseStats
+        run: dotnet publish -c Release -o ./bin/publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SynapseStats-Plugin
+          path: |
+            server/SynapseStats/bin/publish/SynapseStats.dll
+            server/SynapseStats/synapsestats.json
+          retention-days: 30

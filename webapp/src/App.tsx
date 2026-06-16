@@ -10,7 +10,7 @@ import { Sidebar } from './components/Navigation/Sidebar';
 import { DashboardOverview } from './pages/DashboardOverview';
 import { TournamentsPage } from './pages/TournamentsPage';
 import { AdvancedStats } from './pages/AdvancedStats';
-import { supabase } from './lib/supabase';
+import { db, hasFirebaseConfig, doc, getDoc } from './lib/firebase';
 
 type SidebarUser = {
   nickname: string;
@@ -62,10 +62,11 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get('mixId') ?? '';
   }, []);
+  // No Firebase, o "playerId" é o steamId (doc ID na coleção /players)
   const playerId = useMemo(() => {
     try {
-      return localStorage.getItem('synapsecs_player_id') ?? '';
-    } catch (error) {
+      return localStorage.getItem('synapsecs_steam_id') ?? '';
+    } catch {
       return '';
     }
   }, []);
@@ -99,12 +100,9 @@ export default function App() {
       playerId={playerId}
       onLogout={() => {
         try {
-          localStorage.removeItem('synapsecs_player_id');
           localStorage.removeItem('synapsecs_steam_id');
           localStorage.removeItem('synapsecs_player_nickname');
-        } catch (error) {
-          // ignore storage errors
-        }
+        } catch { /* ignore */ }
         window.location.assign('/');
       }}
     />
@@ -135,21 +133,17 @@ const AuthenticatedApp = ({ mixId, playerId, onLogout }: AuthenticatedAppProps) 
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!supabase) {
-        return;
-      }
-
-      const { data } = await supabase
-        .from('players')
-        .select('nickname, avatar_url, elo_interno')
-        .eq('id', playerId)
-        .single();
-
-      if (data) {
-        setUser(data as SidebarUser);
+      if (!hasFirebaseConfig || !db || !playerId) return;
+      const snap = await getDoc(doc(db, 'players', playerId));
+      if (snap.exists()) {
+        const data = snap.data();
+        setUser({
+          nickname:    data.nickname    as string,
+          avatar_url:  (data.avatar_url  as string | null) ?? null,
+          elo_interno: (data.elo_interno as number) ?? 1000,
+        });
       }
     };
-
     void fetchUser();
   }, [playerId]);
 
